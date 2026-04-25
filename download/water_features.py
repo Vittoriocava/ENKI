@@ -243,7 +243,7 @@ def rasterize_water_features(
         print("[WATER] GeoJSON vuoto, maschera tutta a zero")
         mask = np.zeros((GRID_SIZE, GRID_SIZE), dtype=np.uint8)
     else:
-        # Riproietta in UTM 33N
+        # Riproietta in UTM
         gdf = gdf.to_crs("EPSG:32633")
 
         bbox_utm = compute_bbox_utm()

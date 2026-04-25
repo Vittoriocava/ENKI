@@ -32,7 +32,7 @@ from download.dem import download_and_process_dem
 from download.imperviousness import download_and_process_permeability
 from download.landcover import download_and_process_vegetation
 from download.water_features import download_and_process_water_distance
-from download.sentinel1 import download_sar_soil_state, download_sar_flood_mask
+from download.sentinel1 import download_sar_flood_mask
 from download.precipitation import create_precipitation_channels
 
 # Processing
@@ -42,26 +42,62 @@ from processing.tensor_builder import (
 
 
 # ─────────────────────────────────────────────
-# Date di eventi di alluvione storici per Roma e dintorni
+# Date di eventi storici (Roma e dintorni / generale)
 # ─────────────────────────────────────────────
 HISTORICAL_FLOOD_EVENTS = [
-    # Eventi reali o plausibili per Roma/Lazio
-    # datetime(2023, 11, 15, 12, 0),   # Evento novembre 2023
-	datetime(2023, 6, 11, 12, 0),
-    # datetime(2023, 5, 17, 8, 0),     # Primavera 2023
-    # datetime(2022, 12, 22, 14, 0),   # Inverno 2022
-    # datetime(2022, 9, 15, 10, 0),    # Settembre 2022
-    # datetime(2021, 10, 25, 16, 0),   # Autunno 2021
-    # datetime(2021, 1, 25, 11, 0),    # Inverno 2021
-    # datetime(2020, 12, 5, 9, 0),     # Dicembre 2020
-    # datetime(2020, 9, 20, 13, 0),    # Settembre 2020
-    # datetime(2019, 11, 12, 15, 0),   # Novembre 2019
-    # datetime(2019, 6, 10, 7, 0),     # Giugno 2019
-    # datetime(2018, 10, 29, 12, 0),   # Ottobre 2018
-    # datetime(2018, 2, 20, 10, 0),    # Febbraio 2018
-    # datetime(2017, 11, 6, 14, 0),    # Novembre 2017
-    # datetime(2017, 9, 10, 8, 0),     # Settembre 2017
-    # datetime(2016, 12, 15, 11, 0),   # Dicembre 2016
+    datetime(2017, 5, 19, 12, 0),
+    datetime(2017, 9, 3, 12, 0),
+    datetime(2017, 11, 5, 12, 0),
+    datetime(2017, 12, 27, 12, 0),
+    datetime(2018, 3, 6, 12, 0),
+    datetime(2018, 4, 8, 12, 0),
+    datetime(2018, 7, 23, 12, 0),
+    datetime(2018, 10, 9, 12, 0),
+    datetime(2018, 10, 21, 12, 0),
+    datetime(2018, 10, 22, 12, 0),
+    datetime(2018, 11, 20, 12, 0),
+    datetime(2019, 5, 12, 12, 0),
+    datetime(2019, 5, 30, 12, 0),
+    datetime(2019, 7, 27, 12, 0),
+    datetime(2019, 8, 25, 12, 0),
+    datetime(2019, 9, 2, 12, 0),
+    datetime(2019, 10, 2, 12, 0),
+    datetime(2019, 11, 11, 12, 0),
+    datetime(2019, 12, 2, 12, 0),
+    datetime(2020, 9, 23, 12, 0),
+    datetime(2020, 10, 7, 12, 0),
+    datetime(2020, 10, 15, 12, 0),
+    datetime(2021, 1, 3, 12, 0),
+    datetime(2021, 1, 23, 12, 0),
+    datetime(2021, 1, 24, 12, 0),
+    datetime(2021, 4, 19, 12, 0),
+    datetime(2021, 6, 8, 12, 0),
+    datetime(2021, 11, 8, 12, 0),
+    datetime(2021, 12, 2, 12, 0),
+    datetime(2022, 4, 22, 12, 0),
+    datetime(2022, 8, 6, 12, 0),
+    datetime(2022, 8, 9, 12, 0),
+    datetime(2022, 10, 11, 12, 0),
+    datetime(2022, 12, 3, 12, 0),
+    datetime(2022, 12, 13, 12, 0),
+    datetime(2023, 4, 15, 12, 0),
+    datetime(2023, 6, 11, 12, 0),
+    datetime(2023, 6, 13, 12, 0),
+    datetime(2023, 6, 14, 12, 0),
+    datetime(2023, 10, 16, 12, 0),
+    datetime(2023, 10, 24, 12, 0),
+    datetime(2023, 12, 5, 12, 0),
+    datetime(2024, 9, 3, 12, 0),
+    datetime(2024, 9, 13, 12, 0),
+    datetime(2024, 9, 25, 12, 0),
+    datetime(2024, 10, 5, 12, 0),
+    datetime(2024, 10, 24, 12, 0),
+    datetime(2025, 5, 6, 12, 0),
+    datetime(2025, 7, 13, 12, 0),
+    datetime(2025, 9, 10, 12, 0),
+    datetime(2026, 1, 6, 12, 0),
+    datetime(2026, 1, 28, 12, 0),
+    datetime(2026, 3, 12, 12, 0),
 ]
 
 # Date "normali" (non-alluvione) per bilanciare il dataset
@@ -160,31 +196,26 @@ def generate_event_data(
     event_dir = EVENTS_DIR / event_id
     event_dir.mkdir(parents=True, exist_ok=True)
 
-    print(f"\n  Evento: {event_date.strftime('%Y-%m-%d %H:%M')} "
-          f"({'FLOOD' if is_flood else 'NORMAL'})")
-
-    # SAR soil state
+    # SAR flood mask, baseline e event (scaricati insieme)
     try:
-        soil_state = download_sar_soil_state(event_date, event_dir, use_stac=use_stac)
+        flood_mask = download_sar_flood_mask(event_date, event_dir, use_stac=use_stac)
+    except ValueError as e:
+        print(f"    ⚠ SAR scartato: {e}")
+        import shutil
+        shutil.rmtree(event_dir, ignore_errors=True)
+        return False
     except Exception as e:
-        print(f"    ⚠ SAR soil state: {e}")
+        print(f"    ⚠ SAR flood mask: {e}")
 
-    # SAR flood mask (target)
-    if is_flood:
-        try:
-            flood_mask = download_sar_flood_mask(event_date, event_dir, use_stac=use_stac)
-        except Exception as e:
-            print(f"    ⚠ SAR flood mask: {e}")
-    else:
-        # Per eventi normali, flood mask è tutta a zero
+    # Forza a zero la mask per gli eventi "normali" per evitare falsi positivi da rumore SAR
+    if not is_flood:
         flood_mask = np.zeros((GRID_SIZE, GRID_SIZE), dtype=np.float32)
         import rasterio
         from utils.geo import get_target_profile
         output_path = event_dir / "flood_mask.tif"
-        if not output_path.exists():
-            profile = get_target_profile()
-            with rasterio.open(output_path, "w", **profile) as dst:
-                dst.write(flood_mask, 1)
+        profile = get_target_profile()
+        with rasterio.open(output_path, "w", **profile) as dst:
+            dst.write(flood_mask, 1)
 
     # Precipitazioni
     try:
@@ -277,15 +308,18 @@ def main():
     normal_events = NORMAL_EVENTS[:n_normal]
 
     all_events = [(d, True) for d in flood_events] + [(d, False) for d in normal_events]
+    valid_events = []
 
     for event_date, is_flood in tqdm(all_events, desc="Eventi"):
         try:
-            generate_event_data(event_date, is_flood, use_stac=args.use_stac)
+            success = generate_event_data(event_date, is_flood, use_stac=args.use_stac)
+            if success is not False:
+                valid_events.append((event_date, is_flood))
         except Exception as e:
             print(f"\n  ⚠ Errore evento {event_date}: {e}")
 
     # ── FASE 3: Assemblaggio ──
-    assemble_tensors(static_channels, all_events)
+    assemble_tensors(static_channels, valid_events)
 
     # ── Riepilogo ──
     print("\n" + "=" * 60)

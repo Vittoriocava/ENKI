@@ -80,8 +80,8 @@ def visualize_sample(sample_id):
             cmap = 'Blues'
         elif 'vegetation' in CHANNEL_NAMES[i]:
             cmap = 'Greens'
-        elif 'soil' in CHANNEL_NAMES[i]:
-            cmap = 'Oranges'
+        elif 'soil' in CHANNEL_NAMES[i] or 'sar' in CHANNEL_NAMES[i]:
+            cmap = 'bone' if 'sar' in CHANNEL_NAMES[i] else 'Oranges'
         elif 'permeability' in CHANNEL_NAMES[i]:
             cmap = 'Greys'
         elif 'altitude' in CHANNEL_NAMES[i] or 'slope' in CHANNEL_NAMES[i]:

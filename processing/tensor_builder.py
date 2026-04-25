@@ -62,7 +62,7 @@ def load_event_channels(
 
     Returns:
         (event_channels, flood_mask) dove:
-        - event_channels: dict con chiavi: soil_state, precip_*, soil_moisture
+        - event_channels: dict con chiavi: sar_baseline, sar_event, precip_*, soil_moisture
         - flood_mask: np.ndarray (512, 512) binario
     """
     # Cerca la directory dell'evento (formato YYYYMMDD o YYYYMMDD_HH)
@@ -83,18 +83,18 @@ def load_event_channels(
 
     channels = {}
 
-    # Soil state (SAR)
-    sar_path = event_dir / "soil_state.tif"
-    if sar_path.exists():
-        with rasterio.open(sar_path) as src:
-            channels["soil_state"] = src.read(1).astype(np.float32)
-    else:
-        channels["soil_state"] = np.zeros((GRID_SIZE, GRID_SIZE), dtype=np.float32)
+    # SAR baseline & event
+    for name in ["sar_baseline", "sar_event"]:
+        path = event_dir / f"{name}.tif"
+        if path.exists():
+            with rasterio.open(path) as src:
+                channels[name] = src.read(1).astype(np.float32)
+        else:
+            channels[name] = np.zeros((GRID_SIZE, GRID_SIZE), dtype=np.float32)
 
-    # Precipitazioni (5 canali + umidità)
+    # Precipitazioni (3 canali + umidità)
     precip_names = [
-        "precip_24h", "precip_1h",
-        "precip_forecast_1h", "precip_forecast_2h", "precip_forecast_3h",
+        "precip_today", "precip_yesterday", "precip_day_before",
         "soil_moisture"
     ]
     for name in precip_names:

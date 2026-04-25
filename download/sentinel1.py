@@ -158,7 +158,7 @@ def load_s1_composite(
 
     I COG S1 GRD su Planetary Computer non hanno CRS/transform geo:
     usiamo item.bbox per ricostruire il transform WGS84, poi windowed read
-    dell'AOI e reproject a UTM 33N 512×512 @40m.
+    dell'AOI e reproject a UTM 512×512 @40m.
 
     Args:
         items: lista di pystac Items
@@ -204,7 +204,7 @@ def load_s1_composite(
             # Calcola il transform geo per la finestra letta
             win_transform = rasterio.windows.transform(window, geo_transform)
 
-            # Resample alla griglia target UTM 33N
+            # Resample alla griglia target UTM
             resampled = resample_array_to_grid(
                 data, win_transform, geo_crs, method="bilinear"
             )
@@ -220,13 +220,17 @@ def load_s1_composite(
                 resampled_db = np.where(
                     resampled > 0,
                     10.0 * np.log10(resampled),
-                    -30.0  # floor per valori zero/negativi
+                    np.nan  # Mantiene NoData come NaN per evitare artefatti
                 )
 
             del resampled
             all_data.append(resampled_db)
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                r_min = np.nanmin(resampled_db)
+                r_max = np.nanmax(resampled_db)
             print(f"[SAR]   Scena {i+1}/{len(items)}: "
-                  f"range=[{resampled_db.min():.1f}, {resampled_db.max():.1f}] dB")
+                  f"range=[{r_min:.1f}, {r_max:.1f}] dB")
 
         except Exception as e:
             print(f"[SAR]   Scena {i+1}/{len(items)}: errore — {e}")
@@ -242,16 +246,17 @@ def load_s1_composite(
     del all_data
     gc.collect()
 
-    if method == "median":
-        composite = np.nanmedian(stack, axis=0)
-    else:
-        composite = np.nanmean(stack, axis=0)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        if method == "median":
+            composite = np.nanmedian(stack, axis=0)
+        else:
+            composite = np.nanmean(stack, axis=0)
 
     del stack
     gc.collect()
 
-    composite = np.nan_to_num(composite, nan=-20.0).astype(np.float32)
-    return composite
+    return composite.astype(np.float32)
 
 
 def download_sar_soil_state(
@@ -287,24 +292,19 @@ def download_sar_soil_state(
             catalog = _init_stac()
             bbox_wgs = compute_bbox_wgs84()
 
-            # Cerca scene del mese dell'evento
-            year = event_date.year
-            month = event_date.month
-            start = f"{year}-{month:02d}-01"
-            if month == 12:
-                end = f"{year + 1}-01-01"
-            else:
-                end = f"{year}-{month + 1:02d}-01"
+            # Usa i 3 mesi precedenti come mosaico di baseline per lo stato del suolo pre-evento
+            # (evita di includere l'alluvione nell'input del modello)
+            start = (event_date - timedelta(days=90)).strftime("%Y-%m-%d")
+            end = (event_date - timedelta(days=1)).strftime("%Y-%m-%d")
 
-            print(f"[SAR] Ricerca scene S1 per {start} → {end}...")
+            print(f"[SAR] Ricerca scene S1 di baseline (soil state) per {start} → {end}...")
             items = search_s1_scenes(catalog, bbox_wgs, start, end)
 
             if not items:
                 print(f"[SAR] Nessuna scena trovata per {start}→{end}, "
-                      "provo range più ampio (±2 mesi)...")
-                start_ext = (event_date - timedelta(days=60)).strftime("%Y-%m-%d")
-                end_ext = (event_date + timedelta(days=30)).strftime("%Y-%m-%d")
-                items = search_s1_scenes(catalog, bbox_wgs, start_ext, end_ext)
+                      "provo range più ampio (6 mesi precedenti)...")
+                start_ext = (event_date - timedelta(days=180)).strftime("%Y-%m-%d")
+                items = search_s1_scenes(catalog, bbox_wgs, start_ext, end)
 
             if items:
                 print(f"[SAR] Trovate {len(items)} scene, creazione composito...")
@@ -312,21 +312,38 @@ def download_sar_soil_state(
                 items = items[:10]
                 composite = load_s1_composite(items, bbox_wgs)
 
-                # Salva
+                # Regola % NaN
+                nan_ratio = np.isnan(composite).sum() / composite.size
+                if nan_ratio > 0.10:
+                    raise ValueError(f"Troppi pixel senza copertura SAR ({nan_ratio:.1%} NaN > 10%) nel soil state. Immagine scartata.")
+                elif nan_ratio > 0:
+                    print(f"[SAR] Trovati {nan_ratio:.1%} pixel NaN nel soil state. Interpolazione spaziale in corso...")
+                    from rasterio.fill import fillnodata
+                    valid_mask = ~np.isnan(composite)
+                    composite_clean = np.where(valid_mask, composite, 0)
+                    composite = fillnodata(composite_clean, mask=valid_mask, max_search_distance=100.0, smoothing_iterations=0)
+                    
+                    # Fallback
+                    if np.isnan(composite).any():
+                        composite[np.isnan(composite)] = np.nanmean(composite)
+
+                composite_filled = composite.astype(np.float32)
+                
                 profile = get_target_profile()
                 with rasterio.open(output_path, "w", **profile) as dst:
-                    dst.write(composite, 1)
+                    dst.write(composite_filled, 1)
 
                 print(f"[SAR] Soil state salvato: {output_path}")
-                return composite
+                return composite_filled
             else:
-                print("[SAR] Nessuna scena disponibile, fallback sintetico...")
+                raise ValueError("Nessuna scena scaricata da STAC disponibile, evento scartato.")
 
+        except ValueError:
+            raise
         except Exception as e:
-            print(f"[SAR] Errore STAC: {e}")
-            print("[SAR] Fallback a dati sintetici...")
+            raise RuntimeError(f"Errore STAC: {e}")
 
-    return _generate_synthetic_soil_state(output_dir)
+    raise ValueError("Download STAC saltato o non disponibile, evento scartato (no dati sintetici).")
 
 
 def download_sar_flood_mask(
@@ -367,18 +384,17 @@ def download_sar_flood_mask(
             catalog = _init_stac()
             bbox_wgs = compute_bbox_wgs84()
 
-            year = event_date.year
-            month = event_date.month
+            # ── Scena del giorno dell'evento ──
+            # Cerca il passaggio del satellite lo stesso giorno dell'alluvione o nei giorni immediatamente successivi
+            start_event = event_date.strftime("%Y-%m-%d")
+            end_event = (event_date + timedelta(days=1)).strftime("%Y-%m-%d")
 
-            # ── Composito del mese dell'evento ──
-            start_event = f"{year}-{month:02d}-01"
-            if month == 12:
-                end_event = f"{year + 1}-01-01"
-            else:
-                end_event = f"{year}-{month + 1:02d}-01"
-
-            print(f"[SAR] Composito evento: {start_event} → {end_event}")
+            print(f"[SAR] Ricerca scena evento per {start_event} → {end_event}")
             event_items = search_s1_scenes(catalog, bbox_wgs, start_event, end_event)
+            
+            # Sentinel-1 passa ogni ~6 giorni, se non c'è il giorno dell'evento cerchiamo nei 5 giorni successivi
+            if not event_items:
+                raise ValueError("Nessuna scena scaricata da STAC disponibile, evento scartato.")
 
             # ── Composito di riferimento (3 mesi precedenti) ──
             ref_start = (event_date - timedelta(days=90)).strftime("%Y-%m-%d")
@@ -395,14 +411,45 @@ def download_sar_flood_mask(
                 event_composite = load_s1_composite(event_items, bbox_wgs)
                 ref_composite = load_s1_composite(ref_items, bbox_wgs)
 
-                # Regola dello specchio
-                diff = ref_composite - event_composite
-                flood_mask = (diff > SAR_FLOOD_THRESHOLD_DB).astype(np.float32)
+                # Regola del 10% NaN
+                nan_event = np.isnan(event_composite).sum() / event_composite.size
+                nan_ref = np.isnan(ref_composite).sum() / ref_composite.size
+
+                if nan_event > 0.10 or nan_ref > 0.10:
+                    raise ValueError(f"Troppi NaN (evento: {nan_event:.1%}, baseline: {nan_ref:.1%} > 10%). Evento scartato.")
+
+                # Se ci sono NaN (< 10%) nell'evento, li interpoliamo usando la baseline (ref_composite)
+                if nan_event > 0:
+                    print(f"[SAR] Interpolazione del {nan_event:.1%} di NaN nell'evento usando la baseline...")
+                    mask_event_nan = np.isnan(event_composite)
+                    event_composite[mask_event_nan] = ref_composite[mask_event_nan]
+
+                # Se ci sono NaN nella baseline, facciamo il contrario per non perdere l'estensione
+                if nan_ref > 0:
+                    mask_ref_nan = np.isnan(ref_composite)
+                    ref_composite[mask_ref_nan] = event_composite[mask_ref_nan]
+
+                # Se entrambi sono still NaN nello stesso pixel, mettiamo a zero ma non causeranno falsi positivi
+                both_nan = np.isnan(event_composite) & np.isnan(ref_composite)
+                event_composite[both_nan] = 0
+                ref_composite[both_nan] = 0
+
+                # Regola dello specchio: maschera i NoData/NaN in uno dei due compositi
+                with np.errstate(invalid='ignore'):
+                    diff = ref_composite - event_composite
+                    
+                    flood_mask = ((diff > SAR_FLOOD_THRESHOLD_DB)).astype(np.float32)
 
                 # Salva
                 profile = get_target_profile()
                 with rasterio.open(output_path, "w", **profile) as dst:
                     dst.write(flood_mask, 1)
+
+                with rasterio.open(output_dir / "sar_event.tif", "w", **profile) as dst:
+                    dst.write(event_composite.astype(np.float32), 1)
+
+                with rasterio.open(output_dir / "sar_baseline.tif", "w", **profile) as dst:
+                    dst.write(ref_composite.astype(np.float32), 1)
 
                 flood_pct = 100 * flood_mask.sum() / flood_mask.size
                 print(f"[SAR] Flood mask salvata: {output_path} — {flood_pct:.2f}% allagato")
@@ -413,96 +460,14 @@ def download_sar_flood_mask(
                     missing.append("evento")
                 if not ref_items:
                     missing.append("riferimento")
-                print(f"[SAR] Scene mancanti per: {', '.join(missing)}")
-                print("[SAR] Fallback sintetico...")
+                raise ValueError(f"Scene STAC mancanti per: {', '.join(missing)}. Evento scartato.")
 
+        except ValueError:
+            raise
         except Exception as e:
-            print(f"[SAR] Errore STAC flood mask: {e}")
-            print("[SAR] Fallback a dati sintetici...")
+            raise RuntimeError(f"Errore STAC flood mask: {e}")
 
-    return _generate_synthetic_flood_mask(output_dir)
-
-
-# ─────────────────────────────────────────────
-# Generatori sintetici (fallback senza STAC)
-# ─────────────────────────────────────────────
-def _generate_synthetic_soil_state(output_dir: Path) -> np.ndarray:
-    """
-    Genera dati sintetici realistici di backscatter SAR per Roma.
-    Valori tipici VV in dB:
-    - Urbano: -5 a -10 dB
-    - Vegetazione: -10 a -15 dB
-    - Acqua: -18 a -25 dB
-    - Suolo nudo: -8 a -14 dB
-    """
-    rng = np.random.RandomState(42)
-
-    # Base: backscatter medio
-    soil_state = -12.0 + rng.normal(0, 2.0, (GRID_SIZE, GRID_SIZE))
-
-    # Zona urbana (centro): backscatter più alto
-    y, x = np.mgrid[0:GRID_SIZE, 0:GRID_SIZE]
-    dist = np.sqrt((x - GRID_SIZE//2)**2 + (y - GRID_SIZE//2)**2)
-    urban_mask = dist < GRID_SIZE * 0.25
-    soil_state[urban_mask] = -7.0 + rng.normal(0, 1.5, urban_mask.sum())
-
-    # Fiume (backscatter molto basso)
-    for row in range(GRID_SIZE):
-        col = int(GRID_SIZE * 0.4 + 30 * np.sin(row * 2 * np.pi / GRID_SIZE))
-        for dc in range(-3, 4):
-            c = col + dc
-            if 0 <= c < GRID_SIZE:
-                soil_state[row, c] = -22.0 + rng.normal(0, 1.0)
-
-    soil_state = soil_state.astype(np.float32)
-
-    output_path = output_dir / "soil_state.tif"
-    profile = get_target_profile()
-    with rasterio.open(output_path, "w", **profile) as dst:
-        dst.write(soil_state, 1)
-
-    print(f"[SAR] Generato soil_state sintetico: {output_path}")
-    return soil_state
-
-
-def _generate_synthetic_flood_mask(output_dir: Path) -> np.ndarray:
-    """
-    Genera una maschera sintetica di alluvione.
-    Simula allagamento vicino al corso d'acqua principale.
-    """
-    rng = np.random.RandomState(123)
-
-    flood_mask = np.zeros((GRID_SIZE, GRID_SIZE), dtype=np.float32)
-
-    # Allagamento lungo il "Tevere" sintetico
-    for row in range(GRID_SIZE):
-        col = int(GRID_SIZE * 0.4 + 30 * np.sin(row * 2 * np.pi / GRID_SIZE))
-        # Larghezza variabile dell'allagamento (5-20 pixel = 200-800m)
-        flood_width = int(5 + 15 * rng.random())
-        for dc in range(-flood_width, flood_width + 1):
-            c = col + dc
-            if 0 <= c < GRID_SIZE:
-                # Probabilità decresce con la distanza dal centro
-                prob = max(0, 1.0 - abs(dc) / flood_width)
-                if rng.random() < prob:
-                    flood_mask[row, c] = 1.0
-
-    # Aggiungi zone depresse allagate (sparse)
-    for _ in range(10):
-        cy, cx = rng.randint(50, GRID_SIZE - 50, 2)
-        ry, rx = rng.randint(3, 12, 2)
-        yy, xx = np.ogrid[-cy:GRID_SIZE-cy, -cx:GRID_SIZE-cx]
-        ellipse = (yy**2 / ry**2 + xx**2 / rx**2) <= 1.0
-        flood_mask[ellipse] = 1.0
-
-    output_path = output_dir / "flood_mask.tif"
-    profile = get_target_profile()
-    with rasterio.open(output_path, "w", **profile) as dst:
-        dst.write(flood_mask, 1)
-
-    flood_pct = 100 * flood_mask.sum() / flood_mask.size
-    print(f"[SAR] Generata flood mask sintetica: {output_path} — {flood_pct:.2f}% allagato")
-    return flood_mask
+    raise ValueError("Download STAC saltato o non disponibile per flood mask, evento scartato (no dati sintetici).")
 
 
 if __name__ == "__main__":

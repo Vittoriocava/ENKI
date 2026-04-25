@@ -13,20 +13,20 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from config import (
     ROME_LAT, ROME_LON, PIXEL_SIZE, GRID_SIZE, AREA_SIZE,
-    CRS_WGS84, CRS_UTM33N
+    CRS_WGS84, CRS_UTM
 )
 
 
 def latlon_to_utm(lat: float, lon: float) -> tuple[float, float]:
-    """Converte coordinate WGS84 (lat, lon) in UTM 33N (easting, northing)."""
-    transformer = Transformer.from_crs(CRS_WGS84, CRS_UTM33N, always_xy=True)
+    """Converte coordinate WGS84 (lat, lon) in UTM (easting, northing)."""
+    transformer = Transformer.from_crs(CRS_WGS84, CRS_UTM, always_xy=True)
     easting, northing = transformer.transform(lon, lat)
     return easting, northing
 
 
 def utm_to_latlon(easting: float, northing: float) -> tuple[float, float]:
-    """Converte coordinate UTM 33N in WGS84 (lat, lon)."""
-    transformer = Transformer.from_crs(CRS_UTM33N, CRS_WGS84, always_xy=True)
+    """Converte coordinate UTM in WGS84 (lat, lon)."""
+    transformer = Transformer.from_crs(CRS_UTM, CRS_WGS84, always_xy=True)
     lon, lat = transformer.transform(easting, northing)
     return lat, lon
 
@@ -37,10 +37,10 @@ def compute_bbox_utm(
     area_size: float = AREA_SIZE
 ) -> tuple[float, float, float, float]:
     """
-    Calcola bounding box in UTM 33N centrato su (lat, lon).
+    Calcola bounding box in UTM centrato su (lat, lon).
 
     Returns:
-        (xmin, ymin, xmax, ymax) in metri UTM 33N
+        (xmin, ymin, xmax, ymax) in metri UTM
     """
     cx, cy = latlon_to_utm(lat, lon)
     half = area_size / 2.0
@@ -111,7 +111,7 @@ def get_target_profile(
         "width": grid_size,
         "height": grid_size,
         "count": count,
-        "crs": CRS.from_epsg(32633),
+        "crs": CRS.from_string(CRS_UTM),
         "transform": get_affine_transform(bbox_utm, grid_size),
         "nodata": None,
     }
@@ -162,7 +162,7 @@ def resample_array_to_grid(
     grid_size: int = GRID_SIZE
 ) -> np.ndarray:
     """
-    Reproietta e ricampiona un array alla griglia target 512x512 @ 40m UTM33N.
+    Reproietta e ricampiona un array alla griglia target 512x512 @ 40m UTM.
 
     Args:
         src_array: array 2D sorgente
@@ -186,7 +186,7 @@ def resample_array_to_grid(
         bbox_utm = compute_bbox_utm()
 
     dst_transform = get_affine_transform(bbox_utm, grid_size)
-    dst_crs = CRS.from_epsg(32633)
+    dst_crs = CRS.from_string(CRS_UTM)
 
     dst_array = np.zeros((grid_size, grid_size), dtype=np.float32)
 
@@ -252,8 +252,8 @@ def resample_raster_to_grid(
 if __name__ == "__main__":
     bbox_utm = compute_bbox_utm()
     bbox_wgs = compute_bbox_wgs84()
-    print(f"Centro Roma UTM33N: {latlon_to_utm(ROME_LAT, ROME_LON)}")
-    print(f"BBox UTM33N: {bbox_utm}")
+    print(f"Centro Roma UTM: {latlon_to_utm(ROME_LAT, ROME_LON)}")
+    print(f"BBox UTM: {bbox_utm}")
     print(f"BBox WGS84:  {bbox_wgs}")
     print(f"Area: {AREA_SIZE}m × {AREA_SIZE}m = {AREA_SIZE/1000:.1f}km × {AREA_SIZE/1000:.1f}km")
     print(f"Griglia: {GRID_SIZE}×{GRID_SIZE} @ {PIXEL_SIZE}m/pixel")

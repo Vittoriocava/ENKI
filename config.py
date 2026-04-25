@@ -22,25 +22,25 @@ AREA_SIZE = PIXEL_SIZE * GRID_SIZE  # 20480m = 20.48 km
 # CRS
 # ─────────────────────────────────────────────
 CRS_WGS84 = "EPSG:4326"
-CRS_UTM33N = "EPSG:32633"   # UTM Zone 33N (Roma)
+CRS_UTM = "EPSG:32633"   # UTM Zone 33N (Roma)
 
 # ─────────────────────────────────────────────
 # Canali input del tensore
 # ─────────────────────────────────────────────
-NUM_INPUT_CHANNELS = 12
+# ─────────────────────────────────────────────
+NUM_INPUT_CHANNELS = 11
 CHANNEL_NAMES = [
     "altitude",              # 0 - DEM Copernicus GLO-30
     "slope",                 # 1 - Pendenza derivata dal DEM
     "permeability",          # 2 - CLMS Imperviousness (invertito)
     "vegetation",            # 3 - ESA WorldCover
     "water_distance",        # 4 - OSM Distance Transform
-    "soil_state",            # 5 - Sentinel-1 SAR
-    "precip_24h",            # 6 - Precipitazioni ultime 24h
-    "precip_1h",             # 7 - Precipitazioni ultima ora
-    "precip_forecast_1h",    # 8 - Precipitazioni previste +1h
-    "precip_forecast_2h",    # 9 - Precipitazioni previste +2h
-    "precip_forecast_3h",    # 10 - Precipitazioni previste +3h
-    "soil_moisture",         # 11 - Umidità suolo Open-Meteo
+    "sar_baseline",          # 5 - Sentinel-1 SAR Mosaico di riferimento
+    "sar_event",             # 6 - Sentinel-1 SAR Giorno evento
+    "precip_today",          # 7 - Precipitazioni del giorno
+    "precip_yesterday",      # 8 - Precipitazioni del giorno prima
+    "precip_day_before",     # 9 - Precipitazioni di 2 giorni prima
+    "soil_moisture",         # 10 - Umidità suolo Open-Meteo
 ]
 
 # ─────────────────────────────────────────────

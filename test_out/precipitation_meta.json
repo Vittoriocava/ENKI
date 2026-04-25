@@ -1,0 +1,11 @@
+{
+  "event_date": "2026-04-25T21:25:48.616133",
+  "lat_center": 41.8931,
+  "lon_center": 12.4828,
+  "average_values": {
+    "precip_today": 0.0,
+    "precip_yesterday": 0.0,
+    "precip_day_before": 0.0,
+    "soil_moisture": 0.1238085645038018
+  }
+}
