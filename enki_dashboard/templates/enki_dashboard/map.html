@@ -261,7 +261,7 @@
         </div>
         <div class="card-body">
           <div id="map"></div>
-          <div class="route-hint" id="routeHint">Click two points to compute a safe route</div>
+          <div class="route-hint" id="routeHint">Click: route · Shift+Click: spawn flood</div>
           <div class="legend">
             <div class="legend-title">Forecasted intensity</div>
             <div class="legend-bar"></div>
@@ -389,7 +389,7 @@
 
     async function computeRoute() {
       if (!pointA || !pointB) return;
-      setHint('Computing safe route…');
+      <!-- setHint('Computing safe route…'); -->
       const params = new URLSearchParams({
         a_lat: pointA.lat, a_lon: pointA.lng,
         b_lat: pointB.lat, b_lon: pointB.lng,
@@ -415,14 +415,39 @@
     }
 
     function resetRoute() {
-      if (markerA)  { map.removeLayer(markerA);  markerA = null; }
-      if (markerB)  { map.removeLayer(markerB);  markerB = null; }
-      if (pathLayer){ map.removeLayer(pathLayer); pathLayer = null; }
-      pointA = null; pointB = null;
-      setHint('Click two points to compute a safe route');
+          if (markerA)  { map.removeLayer(markerA);  markerA = null; }
+          if (markerB)  { map.removeLayer(markerB);  markerB = null; }
+          if (pathLayer){ map.removeLayer(pathLayer); pathLayer = null; }
+          pointA = null; pointB = null;
+          setHint('Click: route · Shift+Click: spawn flood');
+        }
+
+    async function spawnFloodAt(latlng) {
+      try {
+        const res = await fetch("{% url 'enki_dashboard:spawn_flood' %}", {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ lat: latlng.lat, lon: latlng.lng }),
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          setHint('Spawn failed: ' + (err.error || res.status));
+          return;
+        }
+        <!-- setHint('Flood spawned · refreshing…'); -->
+        refresh();
+      } catch (err) {
+        console.error('spawn failed:', err);
+        setHint('Spawn error');
+      }
     }
 
     map.on('click', (e) => {
+      if (e.originalEvent.shiftKey) {
+        spawnFloodAt(e.latlng);
+        return;
+      }
+
       if (!pointA) {
         pointA = e.latlng;
         markerA = L.marker(e.latlng).addTo(map).bindTooltip('A', { permanent: true, direction: 'top' });

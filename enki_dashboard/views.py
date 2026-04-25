@@ -2,6 +2,8 @@ from pathlib import Path
 import math
 import random
 import threading
+import time
+import json
 
 import numpy as np
 import osmnx as ox
@@ -9,17 +11,18 @@ import networkx as nx
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.views.decorators.http import require_http_methods
+from django.views.decorators.csrf import csrf_exempt
 
 # --- Config ---
 ROME_LAT   = 41.8931
 ROME_LON   = 12.4828
 PIXEL_M    = 40
 SIZE       = 256
-REFRESH_MS = 5000
+REFRESH_MS = 100
+SIM_TICK_S = 1.0
 
 GRAPH_PATH = Path("data/rome_graph.graphml")
 
-# --- Carico il grafo una volta sola all'avvio ---
 _GRAPH = None
 def _load_graph():
     global _GRAPH
@@ -61,6 +64,7 @@ def map_view(request):
 # MOCKUP FLOOD STATE (uguale a prima)
 # ============================================================
 _blobs = []
+_last_tick_at = None
 _lock  = threading.Lock()
 SIGMA_MIN, SIGMA_MAX = 3.0, 9.0
 PEAK_MIN,  PEAK_MAX  = 0.05, 1.0
@@ -107,18 +111,32 @@ def _evolve_blob(b):
         return b["peak"] >= PEAK_MIN
     return False
 
-
 def _step_state():
-    global _blobs
+    global _blobs, _last_tick_at
     with _lock:
+        now = time.monotonic()
+
         if not _blobs:
             _blobs = [_spawn_blob() for _ in range(random.randint(2, 5))]
+            _last_tick_at = now
             return list(_blobs)
-        _blobs = [b for b in _blobs if _evolve_blob(b)]
-        if random.random() < 0.20: _blobs.append(_spawn_blob())
-        if not _blobs:             _blobs.append(_spawn_blob())
-        return list(_blobs)
 
+        elapsed = now - (_last_tick_at or now)
+        n_ticks = int(elapsed // SIM_TICK_S)
+        if n_ticks <= 0:
+            return list(_blobs)
+
+        _last_tick_at = (_last_tick_at or now) + n_ticks * SIM_TICK_S
+        n_ticks = min(n_ticks, 60)
+
+        for _ in range(n_ticks):
+            _blobs = [b for b in _blobs if _evolve_blob(b)]
+            if random.random() < 0.20:
+                _blobs.append(_spawn_blob())
+            if not _blobs:
+                _blobs.append(_spawn_blob())
+
+        return list(_blobs)
 
 def _build_matrix(blobs):
     yy, xx = np.ogrid[:SIZE, :SIZE]
@@ -130,7 +148,6 @@ def _build_matrix(blobs):
 
 
 def _current_matrix():
-    """Snapshot della matrice di flood corrente (senza avanzare lo stato)."""
     with _lock:
         blobs_snapshot = list(_blobs)
     return _build_matrix(blobs_snapshot)
@@ -145,17 +162,51 @@ def flood_data(request):
         "data":   matrix.round(3).tolist(),
     })
 
+SPAWN_DEFAULT_SIGMA = 6.0
+SPAWN_DEFAULT_PEAK  = 0.9
 
-# ============================================================
-# ROUTING (A* sul grafo, costo = lunghezza * (1 + flood * penalty))
-# ============================================================
+@csrf_exempt
+@require_http_methods(["POST"])
+def spawn_flood(request):
+    """Inserisce manualmente un blob alla posizione (lat, lon) indicata.
 
-FLOOD_PENALTY   = 80    # quanto un edge che attraversa flood costa di piu'
-BLOCK_THRESHOLD = 0.85  # sopra questa intensita' l'edge e' impassable
+    Body JSON: { "lat": ..., "lon": ..., "sigma": optional, "peak": optional }
+    """
+    try:
+        body = json.loads(request.body)
+        lat = float(body["lat"])
+        lon = float(body["lon"])
+    except (KeyError, ValueError, json.JSONDecodeError):
+        return JsonResponse({"error": "missing or invalid lat/lon"}, status=400)
 
+    sigma = float(body.get("sigma", SPAWN_DEFAULT_SIGMA))
+    peak  = float(body.get("peak",  SPAWN_DEFAULT_PEAK))
+    sigma = max(SIGMA_MIN, min(SIGMA_MAX, sigma))
+    peak  = max(PEAK_MIN,  min(PEAK_MAX,  peak))
+
+    # Lat/lon -> coordinate griglia
+    bounds = _matrix_bounds()
+    if not (bounds["south"] <= lat <= bounds["north"] and
+            bounds["west"]  <= lon <= bounds["east"]):
+        return JsonResponse({"error": "point outside monitored area"}, status=400)
+
+    ny = (bounds["north"] - lat) / (bounds["north"] - bounds["south"])
+    nx = (lon - bounds["west"])  / (bounds["east"]  - bounds["west"])
+    cy = max(0, min(SIZE - 1, int(ny * SIZE)))
+    cx = max(0, min(SIZE - 1, int(nx * SIZE)))
+
+    blob = {"cy": cy, "cx": cx, "sigma": sigma, "peak": peak}
+    _clamp_in_bounds(blob)
+
+    with _lock:
+        _blobs.append(blob)
+
+    return JsonResponse({"ok": True, "blob": blob})
+
+FLOOD_PENALTY   = 80
+BLOCK_THRESHOLD = 0.85
 
 def _flood_at(matrix, lat, lon, bounds):
-    """Intensita' di flood al punto (lat, lon), o 0 se fuori griglia."""
     if not (bounds["south"] <= lat <= bounds["north"] and
             bounds["west"]  <= lon <= bounds["east"]):
         return 0.0
@@ -167,11 +218,9 @@ def _flood_at(matrix, lat, lon, bounds):
 
 
 def _edge_flood_cost(G, u, v, k, matrix, bounds):
-    """Costo di un edge: lunghezza in metri scalata dal flood medio."""
     edge = G.edges[u, v, k]
     length = edge.get("length", 1.0)
 
-    # Campiono il flood al midpoint dell'edge (approssimazione veloce)
     lat_u, lon_u = G.nodes[u]["y"], G.nodes[u]["x"]
     lat_v, lon_v = G.nodes[v]["y"], G.nodes[v]["x"]
     mid_lat = (lat_u + lat_v) / 2
@@ -185,10 +234,6 @@ def _edge_flood_cost(G, u, v, k, matrix, bounds):
 
 @require_http_methods(["GET"])
 def route(request):
-    """Calcola il percorso da A a B evitando le aree allagate.
-
-    Query params: a_lat, a_lon, b_lat, b_lon
-    """
     try:
         a_lat = float(request.GET["a_lat"])
         a_lon = float(request.GET["a_lon"])
@@ -201,11 +246,9 @@ def route(request):
     bounds = _matrix_bounds()
     matrix = _current_matrix()
 
-    # Snap dei punti A/B sui nodi piu' vicini del grafo
     src_node = ox.distance.nearest_nodes(G, X=a_lon, Y=a_lat)
     dst_node = ox.distance.nearest_nodes(G, X=b_lon, Y=b_lat)
 
-    # Heuristic: distanza euclidea grezza in metri (haversine sarebbe piu' preciso ma piu' lento)
     def heuristic(n1, n2):
         y1, x1 = G.nodes[n1]["y"], G.nodes[n1]["x"]
         y2, x2 = G.nodes[n2]["y"], G.nodes[n2]["x"]
@@ -215,7 +258,6 @@ def route(request):
         return math.hypot(dx, dy)
 
     def weight(u, v, edge_dict):
-        # MultiDiGraph -> edge_dict ha le chiavi degli edge paralleli
         return min(
             _edge_flood_cost(G, u, v, k, matrix, bounds)
             for k in edge_dict
@@ -227,7 +269,6 @@ def route(request):
     except nx.NetworkXNoPath:
         return JsonResponse({"error": "no path"}, status=404)
 
-    # Espando il path includendo le geometrie degli edge (curve stradali, non solo nodi)
     coords = []
     for u, v in zip(node_path[:-1], node_path[1:]):
         edge_data = min(G.get_edge_data(u, v).values(),
