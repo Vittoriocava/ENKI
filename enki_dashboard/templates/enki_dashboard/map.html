@@ -37,20 +37,13 @@
       line-height: 1.5;
     }
 
-    .dashboard {
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-    }
+    .dashboard { display: flex; flex-direction: column; height: 100vh; }
 
+    /* TOPBAR */
     .topbar {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      padding: 0 24px;
-      height: 60px;
-      background: var(--primary);
-      color: #fff;
+      display: flex; align-items: center; gap: 16px;
+      padding: 0 24px; height: 60px;
+      background: var(--primary); color: #fff;
       box-shadow: 0 1px 3px rgba(0,0,0,0.15);
       flex-shrink: 0;
     }
@@ -87,16 +80,14 @@
       100% { box-shadow: 0 0 0 0 rgba(16,185,129,0); }
     }
 
+    /* MAIN */
     .main {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      padding: 16px 24px;
-      overflow: hidden;
-      min-height: 0;
+      flex: 1; display: flex; flex-direction: column;
+      gap: 16px; padding: 16px 24px;
+      overflow: hidden; min-height: 0;
     }
 
+    /* KPI */
     .kpi-row {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -119,47 +110,49 @@
       margin-bottom: 4px;
     }
     .kpi-value {
-      font-size: 22px;
-      font-weight: 700;
+      font-size: 22px; font-weight: 700;
       color: var(--text);
       font-variant-numeric: tabular-nums;
       line-height: 1.2;
     }
-    .kpi-hint {
-      font-size: 11px;
-      color: var(--text-faint);
-      margin-top: 2px;
-    }
+    .kpi-hint { font-size: 11px; color: var(--text-faint); margin-top: 2px; }
     .kpi-value.danger  { color: var(--danger); }
     .kpi-value.warning { color: var(--warning); }
 
+    /* CARD */
     .card {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 8px;
       box-shadow: var(--shadow);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      flex: 1;
-      min-height: 0;
+      display: flex; flex-direction: column;
+      overflow: hidden; flex: 1; min-height: 0;
     }
     .card-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      display: flex; align-items: center; justify-content: space-between;
       padding: 12px 16px;
       border-bottom: 1px solid var(--border);
     }
     .card-title { font-weight: 600; font-size: 14px; }
-    .card-meta  { font-size: 12px; color: var(--text-muted); }
+    .card-meta  { font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 12px; }
     .card-body  { flex: 1; position: relative; min-height: 0; }
     #map { position: absolute; inset: 0; }
 
+    .btn-reset {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 4px 10px;
+      font: inherit; font-size: 12px;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+    .btn-reset:hover { color: var(--text); border-color: var(--text-muted); }
+
+    /* LEGEND */
     .legend {
       position: absolute;
-      bottom: 16px;
-      left: 16px;
+      bottom: 16px; left: 16px;
       z-index: 500;
       background: rgba(255,255,255,0.95);
       backdrop-filter: blur(4px);
@@ -170,16 +163,14 @@
       min-width: 180px;
     }
     .legend-title {
-      font-weight: 600;
-      font-size: 11px;
+      font-weight: 600; font-size: 11px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
       color: var(--text-muted);
       margin-bottom: 6px;
     }
     .legend-bar {
-      height: 8px;
-      border-radius: 2px;
+      height: 8px; border-radius: 2px;
       background: linear-gradient(to right,
         rgb(255,255,191)   0%,
         rgb(253,174,97)   25%,
@@ -188,11 +179,24 @@
       margin-bottom: 4px;
     }
     .legend-scale {
-      display: flex;
-      justify-content: space-between;
+      display: flex; justify-content: space-between;
       color: var(--text-faint);
       font-size: 10px;
       font-variant-numeric: tabular-nums;
+    }
+
+    /* ROUTE HINT BANNER */
+    .route-hint {
+      position: absolute;
+      top: 16px; left: 50%; transform: translateX(-50%);
+      z-index: 500;
+      background: rgba(17,24,39,0.85);
+      color: #fff;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 12px;
+      box-shadow: var(--shadow);
+      pointer-events: none;
     }
   </style>
 </head>
@@ -250,10 +254,14 @@
       <section class="card">
         <div class="card-header">
           <div class="card-title">Risk map</div>
-          <div class="card-meta">Live monitoring · click two points to plot a safe route</div>
+          <div class="card-meta">
+            <span>Live monitoring</span>
+            <button class="btn-reset" id="btnReset">Clear route</button>
+          </div>
         </div>
         <div class="card-body">
           <div id="map"></div>
+          <div class="route-hint" id="routeHint">Click two points to compute a safe route</div>
           <div class="legend">
             <div class="legend-title">Forecasted intensity</div>
             <div class="legend-bar"></div>
@@ -272,16 +280,7 @@
           crossorigin=""></script>
 
   <script>
-    // ============================================================
-    // Configuration
-    // ============================================================
-    const ORS_KEY    = 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6Ijg5ZGEyNTViNjIyNTRhNjhhNzljMGM2YTFkOTVmZWNlIiwiaCI6Im11cm11cjY0In0=';
-    const REFRESH_MS = {{ refresh_ms }};
-    const PIXEL_M    = {{ pixel_m }};
-
-    // ============================================================
-    // Map setup
-    // ============================================================
+    // ===== Map & tile layer =====
     const map = L.map('map', { attributionControl: false })
       .setView([{{ center_lat }}, {{ center_lon }}], {{ zoom }});
 
@@ -289,9 +288,7 @@
       maxZoom: 19,
     }).addTo(map);
 
-    // ============================================================
-    // Color ramp for the heatmap overlay
-    // ============================================================
+    // ===== Heatmap color ramp =====
     const COLOR_STOPS = [
       [0.0, 255, 255, 191],
       [0.2, 253, 174,  97],
@@ -319,9 +316,7 @@
       ];
     }
 
-    // ============================================================
-    // Stats over the matrix
-    // ============================================================
+    // ===== Stats =====
     function computeStats(data, size) {
       let peak = 0, riskCells = 0;
       for (let y = 0; y < size; y++) {
@@ -364,75 +359,12 @@
       return clusters;
     }
 
-    // ============================================================
-    // Geo helpers (lat/lon <-> grid coordinates)
-    // ============================================================
-    function latLonToGrid(latlng, bounds, size) {
-      const ny = (bounds.north - latlng.lat) / (bounds.north - bounds.south);
-      const nx = (latlng.lng   - bounds.west)  / (bounds.east  - bounds.west);
-      return {
-        y: Math.max(0, Math.min(size - 1, Math.floor(ny * size))),
-        x: Math.max(0, Math.min(size - 1, Math.floor(nx * size))),
-      };
-    }
-    function gridToLatLon(y, x, bounds, size) {
-      const lat = bounds.north - ((y + 0.5) / size) * (bounds.north - bounds.south);
-      const lon = bounds.west  + ((x + 0.5) / size) * (bounds.east  - bounds.west);
-      return [lat, lon];
-    }
-
-    // ============================================================
-    // Build avoid_polygons for ORS from flooded clusters
-    // ============================================================
-    function buildAvoidPolygons() {
-      if (!lastData) return null;
-      const size = lastSize, threshold = 0.5;
-      const seen = new Uint8Array(size * size);
-      const polys = [];
-
-      for (let y = 0; y < size; y++) {
-        for (let x = 0; x < size; x++) {
-          if (seen[y * size + x] || lastData[y][x] < threshold) continue;
-
-          let yMin = y, yMax = y, xMin = x, xMax = x;
-          const stack = [[y, x]];
-          while (stack.length) {
-            const [cy, cx] = stack.pop();
-            const ci = cy * size + cx;
-            if (seen[ci] || lastData[cy][cx] < threshold) continue;
-            seen[ci] = 1;
-            if (cy < yMin) yMin = cy; if (cy > yMax) yMax = cy;
-            if (cx < xMin) xMin = cx; if (cx > xMax) xMax = cx;
-            if (cy > 0)        stack.push([cy - 1, cx]);
-            if (cy < size - 1) stack.push([cy + 1, cx]);
-            if (cx > 0)        stack.push([cy, cx - 1]);
-            if (cx < size - 1) stack.push([cy, cx + 1]);
-          }
-
-          // Buffer di una cella per dare margine alle strade
-          yMin = Math.max(0, yMin - 1); yMax = Math.min(size - 1, yMax + 1);
-          xMin = Math.max(0, xMin - 1); xMax = Math.min(size - 1, xMax + 1);
-
-          const [latN, lonW] = gridToLatLon(yMin, xMin, lastBounds, size);
-          const [latS, lonE] = gridToLatLon(yMax, xMax, lastBounds, size);
-          polys.push([[
-            [lonW, latN], [lonE, latN], [lonE, latS], [lonW, latS], [lonW, latN],
-          ]]);
-        }
-      }
-      return polys.length ? { type: 'MultiPolygon', coordinates: polys } : null;
-    }
-
-    // ============================================================
-    // Number formatting (Italian locale: comma as decimal separator)
-    // ============================================================
+    // ===== Formatting (Italian numerals) =====
     const fmtInt = n => new Intl.NumberFormat('it-IT').format(n);
     const fmtPct = n => (n * 100).toFixed(1).replace('.', ',') + ' %';
     const fmtNum = n => n.toFixed(2).replace('.', ',');
 
-    // ============================================================
-    // Severity mapping
-    // ============================================================
+    // ===== Severity =====
     function severityFromPeak(peak) {
       if (peak >= 0.8) return { label: 'Red',    cls: 'danger',  hint: 'critical — immediate response' };
       if (peak >= 0.5) return { label: 'Orange', cls: 'warning', hint: 'high — preparedness needed' };
@@ -446,123 +378,76 @@
       return n + ' zones require attention';
     }
 
-    // ============================================================
-    // State
-    // ============================================================
-    let floodLayer  = null;
-    let lastData    = null;
-    let lastBounds  = null;
-    let lastSize    = null;
-    let pointA      = null, pointB  = null;
-    let markerA     = null, markerB = null;
-    let pathLayer   = null;
-    let pathLatLngs = null;
+    // ===== Routing state =====
+    let pointA = null, pointB = null;
+    let markerA = null, markerB = null;
+    let pathLayer = null;
 
-    // ============================================================
-    // Routing via OpenRouteService (avoids flooded polygons)
-    // ============================================================
-    async function drawPath() {
+    function setHint(text) {
+      document.getElementById('routeHint').textContent = text;
+    }
+
+    async function computeRoute() {
       if (!pointA || !pointB) return;
-
-      const url = 'https://api.openrouteservice.org/v2/directions/driving-car/geojson';
-      const body = {
-        coordinates: [
-          [pointA.lng, pointA.lat],
-          [pointB.lng, pointB.lat],
-        ],
-      };
-
-      const avoid = buildAvoidPolygons();
-      if (avoid) body.options = { avoid_polygons: avoid };
-
+      setHint('Computing safe route…');
+      const params = new URLSearchParams({
+        a_lat: pointA.lat, a_lon: pointA.lng,
+        b_lat: pointB.lat, b_lon: pointB.lng,
+      });
       try {
-        const res = await fetch(url, {
-          method: 'POST',
-          headers: {
-            'Authorization': ORS_KEY,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(body),
-        });
-        const json = await res.json();
-        if (!json.features?.length) {
-          console.warn('ORS: no route', json);
+        const res = await fetch("{% url 'enki_dashboard:route' %}?" + params);
+        if (!res.ok) {
+          setHint(res.status === 404 ? 'No path available' : 'Routing error');
           return;
         }
-        const route = json.features[0];
-        pathLatLngs = route.geometry.coordinates.map(([lon, lat]) => [lat, lon]);
-        pathLatLngs._km  = (route.properties.summary.distance / 1000).toFixed(1).replace('.', ',');
-        pathLatLngs._min = Math.round(route.properties.summary.duration / 60);
+        const { path } = await res.json();
+        if (pathLayer) map.removeLayer(pathLayer);
+        pathLayer = L.polyline(path, {
+          color: '#06b6d4',
+          weight: 5,
+          opacity: 0.9,
+        }).addTo(map);
+        setHint('Route auto-updates with flood changes');
       } catch (err) {
-        console.error('ORS request failed:', err);
-        return;
+        console.error('route failed:', err);
+        setHint('Routing error');
       }
-
-      renderPath();
-    }
-
-    function scorePathFlood(latlngs) {
-      if (!lastData) return 0;
-      let hits = 0;
-      for (const [lat, lng] of latlngs) {
-        const { y, x } = latLonToGrid({ lat, lng }, lastBounds, lastSize);
-        if (lastData[y][x] >= 0.2) hits++;
-      }
-      return hits / latlngs.length;
-    }
-
-    function renderPath() {
-      if (!pathLatLngs) return;
-      if (pathLayer) map.removeLayer(pathLayer);
-
-      const floodScore = scorePathFlood(pathLatLngs);
-      const safe = floodScore < 0.05;
-
-      pathLayer = L.polyline(pathLatLngs, {
-        color: safe ? '#06b6d4' : '#dc2626',
-        weight: 5,
-        opacity: 0.9,
-      }).addTo(map);
-
-      const warn = safe ? '' : ' ⚠ route crosses flooded area';
-      pathLayer.bindTooltip(
-        `${pathLatLngs._km} km · ${pathLatLngs._min} min${warn}`,
-        { sticky: true }
-      );
     }
 
     function resetRoute() {
-      if (markerA)   { map.removeLayer(markerA);   markerA = null; }
-      if (markerB)   { map.removeLayer(markerB);   markerB = null; }
-      if (pathLayer) { map.removeLayer(pathLayer); pathLayer = null; }
-      pointA = null; pointB = null; pathLatLngs = null;
+      if (markerA)  { map.removeLayer(markerA);  markerA = null; }
+      if (markerB)  { map.removeLayer(markerB);  markerB = null; }
+      if (pathLayer){ map.removeLayer(pathLayer); pathLayer = null; }
+      pointA = null; pointB = null;
+      setHint('Click two points to compute a safe route');
     }
 
     map.on('click', (e) => {
-      if (!lastData) return;             // wait for first matrix to arrive
       if (!pointA) {
         pointA = e.latlng;
-        markerA = L.marker(e.latlng).addTo(map).bindTooltip('A', { permanent: true });
+        markerA = L.marker(e.latlng).addTo(map).bindTooltip('A', { permanent: true, direction: 'top' });
+        setHint('Click destination point B');
       } else if (!pointB) {
         pointB = e.latlng;
-        markerB = L.marker(e.latlng).addTo(map).bindTooltip('B', { permanent: true });
-        drawPath();
+        markerB = L.marker(e.latlng).addTo(map).bindTooltip('B', { permanent: true, direction: 'top' });
+        computeRoute();
       } else {
         resetRoute();
         pointA = e.latlng;
-        markerA = L.marker(e.latlng).addTo(map).bindTooltip('A', { permanent: true });
+        markerA = L.marker(e.latlng).addTo(map).bindTooltip('A', { permanent: true, direction: 'top' });
+        setHint('Click destination point B');
       }
     });
 
-    // ============================================================
-    // Main render loop
-    // ============================================================
+    document.getElementById('btnReset').addEventListener('click', resetRoute);
+
+    // ===== Flood overlay loop =====
+    let floodLayer = null;
+
     async function loadFloods() {
       const res = await fetch("{% url 'enki_dashboard:flood_data' %}");
       const { bounds, size, data } = await res.json();
-      lastData = data; lastBounds = bounds; lastSize = size;
 
-      // Paint matrix onto an offscreen canvas
       const canvas = document.createElement('canvas');
       canvas.width = size; canvas.height = size;
       const ctx = canvas.getContext('2d');
@@ -580,7 +465,6 @@
       }
       ctx.putImageData(img, 0, 0);
 
-      // Replace overlay
       if (floodLayer) map.removeLayer(floodLayer);
       floodLayer = L.imageOverlay(
         canvas.toDataURL(),
@@ -588,10 +472,10 @@
         { opacity: 0.7, interactive: false }
       ).addTo(map);
 
-      // KPI update
+      // KPIs
       const s = computeStats(data, size);
 
-      const affectedKm2 = s.riskCells * Math.pow(PIXEL_M / 1000, 2);
+      const affectedKm2 = s.riskCells * Math.pow({{ pixel_m }} / 1000, 2);
       document.getElementById('kpiRisk').textContent = fmtNum(affectedKm2) + ' km²';
       document.getElementById('kpiRiskHint').textContent =
         fmtPct(s.riskCells / s.total) + ' of monitored area';
@@ -614,14 +498,15 @@
         String(now.getMinutes()).padStart(2, '0') + ':' +
         String(now.getSeconds()).padStart(2, '0');
 
-      // If A and B are both placed, recompute the route with the fresh avoid zones
-      if (pointA && pointB) drawPath();
+      // If a route is active, recompute against the new flood map
+      if (pointA && pointB) computeRoute();
     }
 
     function refresh() {
       loadFloods().catch(err => console.error('flood load failed:', err));
     }
 
+    const REFRESH_MS = {{ refresh_ms }};
     refresh();
     setInterval(refresh, REFRESH_MS);
   </script>
