@@ -1,5 +1,5 @@
 """
-ASGI config for enki_dashboard project.
+ASGI config for enki_project project.
 
 It exposes the ASGI callable as a module-level variable named ``application``.
 
@@ -11,6 +11,6 @@ import os
 
 from django.core.asgi import get_asgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'enki_dashboard.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'enki_project.settings')
 
 application = get_asgi_application()
