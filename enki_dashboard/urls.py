@@ -9,5 +9,6 @@ urlpatterns = [
     path("api/route/",        views.route,              name="route"),
     path("api/spawn/",        views.spawn_flood,        name="spawn_flood"),
     path("api/clear-spawns/", views.clear_spawns,       name="clear_spawns"),
-    path("api/periods/",      views.historical_periods, name="historical_periods"),
+    path("api/periods/",           views.historical_periods, name="historical_periods"),
+    path("api/model-prediction/", views.model_prediction,  name="model_prediction"),
 ]

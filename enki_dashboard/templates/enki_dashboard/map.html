@@ -220,6 +220,124 @@
       font-variant-numeric: tabular-nums;
     }
 
+    /* ── AI PREDICTION DRAWER ── */
+    .pred-drawer {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      height: 460px;
+      background: var(--surface);
+      border-top: 2px solid var(--primary);
+      box-shadow: 0 -4px 16px rgba(0,0,0,0.12);
+      z-index: 1000;
+      display: flex; flex-direction: column;
+      transform: translateY(100%);
+      transition: transform 0.3s ease;
+    }
+    .pred-drawer.open { transform: translateY(0); }
+
+    .pred-drawer-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      background: var(--surface);
+    }
+    .pred-drawer-header .card-title { color: var(--primary); }
+
+    .pred-drawer-body {
+      flex: 1; overflow-y: auto;
+      padding: 16px;
+      display: flex; flex-direction: column; gap: 12px;
+    }
+
+    .pred-section-title {
+      font-size: 11px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.6px;
+      color: var(--text-muted); margin-bottom: 6px;
+    }
+
+    .pred-channels-grid {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 8px;
+    }
+    .pred-channel-item {
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+    }
+    .pred-channel-item img {
+      width: 100%; border-radius: 4px;
+      border: 1px solid var(--border);
+    }
+    .pred-channel-label {
+      font-size: 9px; color: var(--text-muted);
+      text-align: center; line-height: 1.2;
+    }
+
+    .pred-output-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 16px; max-width: 700px;
+    }
+    .pred-output-item {
+      display: flex; flex-direction: column; align-items: flex-start; gap: 4px;
+    }
+    .pred-output-item img {
+      width: 100%; border-radius: 4px;
+      border: 1px solid var(--border);
+    }
+
+    .pred-stats-row {
+      display: flex; gap: 20px; flex-wrap: wrap;
+    }
+    .pred-stat {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 14px;
+    }
+    .pred-stat-label {
+      font-size: 10px; text-transform: uppercase;
+      letter-spacing: 0.5px; color: var(--text-muted); font-weight: 600;
+    }
+    .pred-stat-value {
+      font-size: 18px; font-weight: 700;
+      color: var(--text); font-variant-numeric: tabular-nums;
+    }
+
+    .pred-loading {
+      text-align: center; padding: 60px 20px;
+      color: var(--text-muted); font-size: 13px;
+    }
+    .spinner {
+      display: inline-block; width: 28px; height: 28px;
+      border: 3px solid var(--border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      vertical-align: middle; margin-right: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .btn-ai {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 14px;
+      background: rgba(255,255,255,0.18);
+      border: 1px solid rgba(255,255,255,0.35);
+      border-radius: 6px;
+      color: #fff; font: inherit; font-size: 12px; font-weight: 600;
+      cursor: pointer; letter-spacing: 0.3px;
+    }
+    .btn-ai:hover { background: rgba(255,255,255,0.28); }
+
+    .btn-primary {
+      padding: 5px 12px;
+      background: var(--primary); color: #fff;
+      border: none; border-radius: 4px;
+      font: inherit; font-size: 12px; font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-primary:hover:not(:disabled) { background: #0f2d9e; }
+
     /* ROUTE HINT BANNER */
     .route-hint {
       position: absolute;
@@ -250,6 +368,10 @@
       </div>
 
       <div class="topbar-spacer"></div>
+
+      <button class="btn-ai" id="btnOpenPred" title="Open ResUNet flood prediction panel">
+        &#9728; ResUNet AI Forecast
+      </button>
 
       <div class="status-pill">
         <span class="status-dot"></span>
@@ -308,6 +430,52 @@
       </section>
 
     </main>
+  </div>
+
+  <!-- ResUNet Prediction Drawer -->
+  <div class="pred-drawer" id="predDrawer">
+    <div class="pred-drawer-header">
+      <div class="card-title">ResUNet Flood Prediction</div>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <label style="display:inline-flex; align-items:center; gap:6px; font-size:12px; color:var(--text-muted);">
+          Date:
+          <input type="date" id="predDateInput"
+                 style="border:1px solid var(--border); border-radius:4px; padding:4px 8px; font:inherit; font-size:12px; color:var(--text); cursor:pointer;"
+          />
+        </label>
+        <button id="btnRunPred" class="btn-primary">Run Prediction</button>
+        <button id="btnToggleModelLayer" class="btn-reset" disabled>Toggle on map</button>
+        <button id="btnClosePred" class="btn-reset">&#10005; Close</button>
+      </div>
+    </div>
+    <div class="pred-drawer-body" id="predDrawerBody">
+      <div class="pred-loading" id="predIdle">
+        Select a date and click <strong>Run Prediction</strong>. Default is today — you can choose any past date to run the model on historical data.
+      </div>
+      <div class="pred-loading" id="predLoading" style="display:none;">
+        <span class="spinner"></span> Running ResUNet inference&hellip; (first load takes a few seconds)
+      </div>
+      <div id="predContent" style="display:none;">
+        <!-- Input channels -->
+        <div class="pred-section-title">Model Input &mdash; 8 channels</div>
+        <div class="pred-channels-grid" id="predChannelGrid"></div>
+        <!-- Stats -->
+        <div class="pred-section-title" style="margin-top:14px;">Prediction Stats</div>
+        <div class="pred-stats-row" id="predStatsRow"></div>
+        <!-- Outputs -->
+        <div class="pred-section-title" style="margin-top:14px;">Model Output</div>
+        <div class="pred-output-grid">
+          <div class="pred-output-item">
+            <div class="pred-section-title" style="margin-bottom:0;">Raw output (sigmoid)</div>
+            <img id="predRawImg" alt="raw output"/>
+          </div>
+          <div class="pred-output-item">
+            <div class="pred-section-title" style="margin-bottom:0;">Thresholded (&ge; 0.4)</div>
+            <img id="predThreshImg" alt="thresholded output"/>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
@@ -634,6 +802,147 @@
     loadPeriods();
     refresh();
     setInterval(refresh, REFRESH_MS);
+
+    // ===== ResUNet prediction drawer =====
+    let modelLayer     = null;
+    let modelHeatmap   = null;
+    let predRunning    = false;
+
+    const predDrawer    = document.getElementById('predDrawer');
+    const predIdle      = document.getElementById('predIdle');
+    const predLoading   = document.getElementById('predLoading');
+    const predContent   = document.getElementById('predContent');
+    const btnRunPred    = document.getElementById('btnRunPred');
+    const btnToggle     = document.getElementById('btnToggleModelLayer');
+    const btnClosePred  = document.getElementById('btnClosePred');
+    const btnOpenPred   = document.getElementById('btnOpenPred');
+    const predDateInput = document.getElementById('predDateInput');
+
+    // Init date picker: default = today, max = today
+    const todayISO = new Date().toISOString().slice(0, 10);
+    predDateInput.value = todayISO;
+    predDateInput.max   = todayISO;
+
+    btnOpenPred.addEventListener('click', () => predDrawer.classList.add('open'));
+    btnClosePred.addEventListener('click', () => predDrawer.classList.remove('open'));
+
+    function showPredState(state) {
+      predIdle.style.display    = state === 'idle'    ? '' : 'none';
+      predLoading.style.display = state === 'loading' ? '' : 'none';
+      predContent.style.display = state === 'done'    ? '' : 'none';
+    }
+
+    btnRunPred.addEventListener('click', async () => {
+      if (predRunning) return;
+      predRunning = true;
+      btnRunPred.disabled = true;
+      showPredState('loading');
+
+      try {
+        const selectedDate = predDateInput.value;
+        const url = "{% url 'enki_dashboard:model_prediction' %}" +
+                    (selectedDate ? '?date=' + selectedDate : '');
+        const res  = await fetch(url);
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error || 'Server error ' + res.status);
+        }
+
+        // Update date picker to reflect what was actually used
+        predDateInput.value = data.date;
+
+        // Input channels grid
+        const grid = document.getElementById('predChannelGrid');
+        grid.innerHTML = '';
+        for (const ch of data.channels) {
+          const div = document.createElement('div');
+          div.className = 'pred-channel-item';
+          div.innerHTML = `<img src="data:image/png;base64,${ch.img}" />
+                           <div class="pred-channel-label">${ch.name}</div>`;
+          grid.appendChild(div);
+        }
+
+        // Stats
+        const statsRow = document.getElementById('predStatsRow');
+        const s = data.stats;
+        statsRow.innerHTML = `
+          <div class="pred-stat">
+            <div class="pred-stat-label">Max probability</div>
+            <div class="pred-stat-value">${(s.max_prob * 100).toFixed(1)} %</div>
+          </div>
+          <div class="pred-stat">
+            <div class="pred-stat-label">Flooded area</div>
+            <div class="pred-stat-value">${s.flooded_pct.toFixed(1)} %</div>
+          </div>
+          <div class="pred-stat">
+            <div class="pred-stat-label">Mean probability</div>
+            <div class="pred-stat-value">${(s.mean_prob * 100).toFixed(2)} %</div>
+          </div>
+          <div class="pred-stat">
+            <div class="pred-stat-label">Threshold</div>
+            <div class="pred-stat-value">${data.threshold}</div>
+          </div>`;
+
+        // Output images
+        document.getElementById('predRawImg').src    = 'data:image/png;base64,' + data.raw_img;
+        document.getElementById('predThreshImg').src = 'data:image/png;base64,' + data.thresh_img;
+
+        // Store heatmap for map overlay
+        modelHeatmap = data.heatmap;
+        btnToggle.disabled = false;
+
+        showPredState('done');
+      } catch (err) {
+        console.error('prediction failed:', err);
+        predIdle.style.display = '';
+        predIdle.innerHTML = '<span style="color:var(--danger)">Prediction failed — check server logs.</span>';
+        predLoading.style.display = 'none';
+      } finally {
+        predRunning = false;
+        btnRunPred.disabled = false;
+      }
+    });
+
+    // Toggle model heatmap overlay on Leaflet map
+    let modelLayerVisible = false;
+    btnToggle.addEventListener('click', () => {
+      if (!modelHeatmap) return;
+
+      if (modelLayerVisible) {
+        if (modelLayer) { map.removeLayer(modelLayer); modelLayer = null; }
+        modelLayerVisible = false;
+        btnToggle.textContent = 'Toggle on map';
+        return;
+      }
+
+      // Build canvas from model heatmap
+      const size = modelHeatmap.length;
+      const canvas = document.createElement('canvas');
+      canvas.width = size; canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      const img = ctx.createImageData(size, size);
+      for (let y = 0; y < size; y++) {
+        for (let x = 0; x < size; x++) {
+          const [r, g, b, a] = colorByIntensity(modelHeatmap[y][x]);
+          const idx = (y * size + x) * 4;
+          img.data[idx]     = r;
+          img.data[idx + 1] = g;
+          img.data[idx + 2] = b;
+          img.data[idx + 3] = a;
+        }
+      }
+      ctx.putImageData(img, 0, 0);
+
+      const bounds_data = {{ bounds_json|safe }};
+      modelLayer = L.imageOverlay(
+        canvas.toDataURL(),
+        [[bounds_data.south, bounds_data.west], [bounds_data.north, bounds_data.east]],
+        { opacity: 0.75, interactive: false }
+      ).addTo(map);
+
+      modelLayerVisible = true;
+      btnToggle.textContent = 'Remove from map';
+    });
   </script>
 </body>
 </html>

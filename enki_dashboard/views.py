@@ -203,6 +203,7 @@ def _parse_period(request):
 # VIEWS
 # ============================================================
 def map_view(request):
+    import json as _json
     coverage_km2 = (SIZE * PIXEL_M / 1000) ** 2
     return render(request, "enki_dashboard/map.html", {
         "center_lat":   ROME_LAT,
@@ -211,6 +212,7 @@ def map_view(request):
         "coverage_km2": round(coverage_km2, 1),
         "pixel_m":      PIXEL_M,
         "refresh_ms":   REFRESH_MS,
+        "bounds_json":  _json.dumps(_matrix_bounds()),
     })
 
 
@@ -222,6 +224,20 @@ def flood_data(request):
         "size":   SIZE,
         "data":   matrix.round(3).tolist(),
     })
+
+
+@require_http_methods(["GET"])
+def model_prediction(request):
+    """Run ResUNet inference for a given date (default: today)."""
+    from . import model_service
+    date_str = request.GET.get("date") or None
+    if date_str:
+        try:
+            datetime.strptime(date_str, "%Y-%m-%d")
+        except ValueError:
+            return JsonResponse({"error": "invalid date, expected YYYY-MM-DD"}, status=400)
+    result = model_service.run_full_pipeline(date_str)
+    return JsonResponse(result)
 
 
 @require_http_methods(["GET"])

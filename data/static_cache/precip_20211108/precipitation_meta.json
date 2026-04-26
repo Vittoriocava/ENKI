@@ -1,0 +1,11 @@
+{
+  "event_date": "2021-11-08T12:00:00",
+  "lat_center": 41.8931,
+  "lon_center": 12.4828,
+  "average_values": {
+    "precip_today": 8.897240999030895,
+    "precip_yesterday": 10.934699418799095,
+    "precip_day_before": 17.66139280529271,
+    "soil_moisture": 0.4222220200432658
+  }
+}
