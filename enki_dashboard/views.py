@@ -2,6 +2,7 @@ from pathlib import Path
 import math
 import json
 import threading
+from datetime import datetime, timezone
 
 import numpy as np
 import osmnx as ox
@@ -11,7 +12,10 @@ from django.shortcuts import render
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 
-# --- Config ---
+
+# ============================================================
+# CONFIG
+# ============================================================
 ROME_LAT   = 41.8931
 ROME_LON   = 12.4828
 PIXEL_M    = 40
@@ -25,27 +29,30 @@ HISTORICAL_PATH = Path("data/historical_events_rome.geojson")
 HISTORICAL_SIGMA = 5.0   # raggio del blob in pixel (~200 m con PIXEL_M=40)
 HISTORICAL_PEAK  = 0.85  # intensita' "danger" ma non al massimo
 
-_lock = threading.Lock()
-_extra_blobs = []   # blob aggiunti manualmente con Shift+Click
-
+# Bound per i blob spawnati manualmente
 SIGMA_MIN, SIGMA_MAX = 3.0, 9.0
 PEAK_MIN,  PEAK_MAX  = 0.05, 1.0
 
-# --- Carico il grafo una volta sola all'avvio ---
-_GRAPH = None
-def _load_graph():
-    global _GRAPH
-    if _GRAPH is None:
-        if not GRAPH_PATH.exists():
-            raise RuntimeError(
-                f"Grafo non trovato in {GRAPH_PATH}. "
-                f"Esegui: uv run manage.py build_graph"
-            )
-        _GRAPH = ox.load_graphml(GRAPH_PATH)
-    return _GRAPH
+# Parametri default dello spawn manuale
+SPAWN_DEFAULT_SIGMA = 6.0
+SPAWN_DEFAULT_PEAK  = 0.9
+
+# Costi del routing
+FLOOD_PENALTY   = 80     # quanto un edge "allagato" costa di piu'
+BLOCK_THRESHOLD = 0.85   # sopra questa intensita' l'edge e' impassable
+
+# Stato condiviso
+_lock         = threading.Lock()
+_extra_blobs  = []     # blob aggiunti manualmente con Shift+Click
+_GRAPH        = None   # grafo stradale, lazy
+_historical_blobs = None  # eventi storici parsati dal GeoJSON
 
 
+# ============================================================
+# UTILITY GEOGRAFICHE
+# ============================================================
 def _matrix_bounds():
+    """Bounding box geografico della griglia."""
     half_m   = (SIZE * PIXEL_M) / 2
     half_lat = half_m / 111_000
     half_lon = half_m / (111_000 * math.cos(math.radians(ROME_LAT)))
@@ -56,26 +63,6 @@ def _matrix_bounds():
         "east":  ROME_LON + half_lon,
     }
 
-
-def map_view(request):
-    coverage_km2 = (SIZE * PIXEL_M / 1000) ** 2
-    return render(request, "enki_dashboard/map.html", {
-        "center_lat":   ROME_LAT,
-        "center_lon":   ROME_LON,
-        "zoom":         13,
-        "coverage_km2": round(coverage_km2, 1),
-        "pixel_m":      PIXEL_M,
-        "refresh_ms":   REFRESH_MS,
-    })
-
-
-# ============================================================
-# HISTORICAL EVENTS -> matrice di flood
-# ============================================================
-# Carica una volta sola, calcola la matrice una volta sola: e' statica.
-
-_historical_blobs = None  # lista di {cy, cx, sigma, peak} in coordinate griglia
-_historical_matrix = None  # np.ndarray (SIZE, SIZE) gia' renderizzata
 
 def _latlon_to_grid(lat, lon, bounds):
     """Converte (lat, lon) in (riga, colonna) della griglia. None se fuori."""
@@ -89,8 +76,26 @@ def _latlon_to_grid(lat, lon, bounds):
     return cy, cx
 
 
+# ============================================================
+# GRAFO STRADALE (per il routing)
+# ============================================================
+def _load_graph():
+    global _GRAPH
+    if _GRAPH is None:
+        if not GRAPH_PATH.exists():
+            raise RuntimeError(
+                f"Grafo non trovato in {GRAPH_PATH}. "
+                f"Esegui: uv run manage.py build_graph"
+            )
+        _GRAPH = ox.load_graphml(GRAPH_PATH)
+    return _GRAPH
+
+
+# ============================================================
+# EVENTI STORICI -> matrice di flood
+# ============================================================
 def _load_historical_blobs():
-    """Legge il GeoJSON e converte ogni feature in un blob della griglia."""
+    """Legge il GeoJSON una volta sola e converte ogni feature in un blob."""
     global _historical_blobs
     if _historical_blobs is not None:
         return _historical_blobs
@@ -109,113 +114,44 @@ def _load_historical_blobs():
         if pos is None:
             continue   # eventi fuori dalla griglia (es. Civitavecchia, Bracciano)
         cy, cx = pos
+        props = feat["properties"]
         blobs.append({
             "cy": cy, "cx": cx,
             "sigma": HISTORICAL_SIGMA,
             "peak":  HISTORICAL_PEAK,
+            "ts_ms": props.get("data_evento"),  # millis Unix, puo' essere None
         })
     _historical_blobs = blobs
     return blobs
 
 
-def _build_historical_matrix():
-    """Renderizza una sola volta la matrice cumulativa degli eventi storici."""
-    global _historical_matrix
-    if _historical_matrix is not None:
-        return _historical_matrix
-
+def _build_historical_matrix(year=None, month=None, day=None):
+    """Renderizza la matrice degli eventi storici filtrati per data."""
     blobs = _load_historical_blobs()
+
+    if year is not None or month is not None or day is not None:
+        def keep(b):
+            ts = b.get("ts_ms")
+            if ts is None:
+                return False
+            d = datetime.fromtimestamp(ts / 1000, tz=timezone.utc)
+            if year  is not None and d.year  != year:  return False
+            if month is not None and d.month != month: return False
+            if day   is not None and d.day   != day:   return False
+            return True
+        blobs = [b for b in blobs if keep(b)]
+
     yy, xx = np.ogrid[:SIZE, :SIZE]
     matrix = np.zeros((SIZE, SIZE), dtype=np.float32)
     for b in blobs:
         d2 = (yy - b["cy"]) ** 2 + (xx - b["cx"]) ** 2
         matrix = np.maximum(matrix, b["peak"] * np.exp(-d2 / (2 * b["sigma"] ** 2)))
-    _historical_matrix = matrix
     return matrix
 
 
-# ============================================================
-# MOCKUP DI SIMULAZIONE EVOLUTIVA - DISATTIVATO
-# ============================================================
-# La generazione di blob casuali e la loro evoluzione (move/grow/shrink/...)
-# e' stata sostituita con la lettura statica degli eventi storici di Roma
-# (CittaClima.it). Lascio il codice qui sotto commentato come riferimento per
-# riattivarlo se serve una simulazione dinamica.
-#
-# import random
-# import threading
-# import time
-#
-# _blobs = []
-# _lock  = threading.Lock()
-# _last_tick_at = None
-# SIM_TICK_S = 1.0
-# SIGMA_MIN, SIGMA_MAX = 3.0, 9.0
-# PEAK_MIN,  PEAK_MAX  = 0.05, 1.0
-#
-# def _spawn_blob():
-#     sigma  = random.uniform(SIGMA_MIN, SIGMA_MAX)
-#     margin = int(3 * sigma) + 1
-#     return {
-#         "cy":    random.randint(margin, SIZE - margin),
-#         "cx":    random.randint(margin, SIZE - margin),
-#         "sigma": sigma,
-#         "peak":  random.uniform(0.4, 1.0),
-#     }
-#
-# def _clamp_in_bounds(b):
-#     margin = int(3 * b["sigma"]) + 1
-#     b["cy"] = max(margin, min(SIZE - margin, b["cy"]))
-#     b["cx"] = max(margin, min(SIZE - margin, b["cx"]))
-#
-# def _evolve_blob(b):
-#     action = random.choices(
-#         ["stay", "move", "grow", "shrink", "intensify", "weaken", "disappear"],
-#         weights=[78,    10,    3,      3,         2,          2,        2],
-#     )[0]
-#     if action == "stay":      return True
-#     if action == "move":
-#         b["cy"] += random.randint(-4, 4)
-#         b["cx"] += random.randint(-4, 4)
-#         _clamp_in_bounds(b); return True
-#     if action == "grow":
-#         b["sigma"] = min(SIGMA_MAX, b["sigma"] + random.uniform(0.3, 0.8))
-#         _clamp_in_bounds(b); return True
-#     if action == "shrink":
-#         b["sigma"] = max(SIGMA_MIN, b["sigma"] - random.uniform(0.3, 0.8))
-#         return True
-#     if action == "intensify":
-#         b["peak"] = min(PEAK_MAX, b["peak"] + random.uniform(0.05, 0.15))
-#         return True
-#     if action == "weaken":
-#         b["peak"] -= random.uniform(0.05, 0.15)
-#         return b["peak"] >= PEAK_MIN
-#     return False
-#
-# def _step_state():
-#     global _blobs, _last_tick_at
-#     with _lock:
-#         now = time.monotonic()
-#         if not _blobs:
-#             _blobs = [_spawn_blob() for _ in range(random.randint(2, 5))]
-#             _last_tick_at = now
-#             return list(_blobs)
-#         elapsed = now - (_last_tick_at or now)
-#         n_ticks = int(elapsed // SIM_TICK_S)
-#         if n_ticks <= 0:
-#             return list(_blobs)
-#         _last_tick_at = (_last_tick_at or now) + n_ticks * SIM_TICK_S
-#         n_ticks = min(n_ticks, 60)
-#         for _ in range(n_ticks):
-#             _blobs = [b for b in _blobs if _evolve_blob(b)]
-#             if random.random() < 0.20: _blobs.append(_spawn_blob())
-#             if not _blobs:             _blobs.append(_spawn_blob())
-#         return list(_blobs)
-
-
-def _current_matrix():
-    """Matrice corrente: storica + eventuali blob spawnati manualmente."""
-    matrix = _build_historical_matrix().copy()
+def _current_matrix(year=None, month=None, day=None):
+    """Matrice corrente: storica filtrata + blob spawnati manualmente."""
+    matrix = _build_historical_matrix(year=year, month=month, day=day).copy()
 
     with _lock:
         extras = list(_extra_blobs)
@@ -230,18 +166,66 @@ def _current_matrix():
     return matrix
 
 
+# ============================================================
+# HELPER: querystring -> filtro periodo
+# ============================================================
+def _parse_period(request):
+    """Estrae year/month/day dalla querystring. Tutti opzionali."""
+    def _opt_int(name):
+        v = request.GET.get(name)
+        return int(v) if v and v.isdigit() else None
+    return _opt_int("year"), _opt_int("month"), _opt_int("day")
+
+
+# ============================================================
+# VIEWS
+# ============================================================
+def map_view(request):
+    coverage_km2 = (SIZE * PIXEL_M / 1000) ** 2
+    return render(request, "enki_dashboard/map.html", {
+        "center_lat":   ROME_LAT,
+        "center_lon":   ROME_LON,
+        "zoom":         13,
+        "coverage_km2": round(coverage_km2, 1),
+        "pixel_m":      PIXEL_M,
+        "refresh_ms":   REFRESH_MS,
+    })
+
+
 def flood_data(request):
-    matrix = _current_matrix()
+    year, month, day = _parse_period(request)
+    matrix = _current_matrix(year=year, month=month, day=day)
     return JsonResponse({
         "bounds": _matrix_bounds(),
         "size":   SIZE,
         "data":   matrix.round(3).tolist(),
     })
 
-SPAWN_DEFAULT_SIGMA = 6.0
-SPAWN_DEFAULT_PEAK  = 0.9
+
+@require_http_methods(["GET"])
+def historical_periods(request):
+    """Date distinte presenti nei dati storici, per il picker giornaliero."""
+    blobs = _load_historical_blobs()
+    days = set()
+    for b in blobs:
+        ts = b.get("ts_ms")
+        if ts is None:
+            continue
+        d = datetime.fromtimestamp(ts / 1000, tz=timezone.utc)
+        days.add((d.year, d.month, d.day))
+
+    return JsonResponse({
+        "days": sorted(
+            [{"year": y, "month": m, "day": d} for (y, m, d) in days],
+            key=lambda x: (x["year"], x["month"], x["day"]),
+            reverse=True,
+        ),
+    })
 
 
+# ============================================================
+# SPAWN MANUALE (Shift+Click sulla mappa)
+# ============================================================
 def _clamp_blob_in_bounds(b):
     margin = int(3 * b["sigma"]) + 1
     b["cy"] = max(margin, min(SIZE - margin, b["cy"]))
@@ -278,25 +262,19 @@ def spawn_flood(request):
 
     return JsonResponse({"ok": True, "blob": blob})
 
-# ============================================================
-# SPAWN MANUALE - mantiene la possibilita' di aggiungere blob al volo
-# ============================================================
-# Per ora disabilitato: la matrice e' statica. Se vuoi riattivarlo, dovrai
-# rimettere _blobs e _lock dalla sezione commentata sopra e fare overlay.
-#
-# @csrf_exempt
-# @require_http_methods(["POST"])
-# def spawn_flood(request):
-#     return JsonResponse({"error": "disabled in historical mode"}, status=400)
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def clear_spawns(request):
+    """Rimuove tutti i blob aggiunti manualmente."""
+    with _lock:
+        _extra_blobs.clear()
+    return JsonResponse({"ok": True})
 
 
 # ============================================================
-# ROUTING (A* sul grafo, costo = lunghezza * (1 + flood * penalty))
+# ROUTING (A* sul grafo stradale, costo = lunghezza * (1 + flood * penalty))
 # ============================================================
-FLOOD_PENALTY   = 80
-BLOCK_THRESHOLD = 0.85
-
-
 def _flood_at(matrix, lat, lon, bounds):
     if not (bounds["south"] <= lat <= bounds["north"] and
             bounds["west"]  <= lon <= bounds["east"]):
@@ -343,9 +321,11 @@ def route(request):
     except (KeyError, ValueError):
         return JsonResponse({"error": "missing or invalid coordinates"}, status=400)
 
+    year, month, day = _parse_period(request)
+
     G = _load_graph()
     bounds = _matrix_bounds()
-    matrix = _current_matrix()
+    matrix = _current_matrix(year=year, month=month, day=day)
 
     src_node = _nearest_node(G, a_lat, a_lon)
     dst_node = _nearest_node(G, b_lat, b_lon)

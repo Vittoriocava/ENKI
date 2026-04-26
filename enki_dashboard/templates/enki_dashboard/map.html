@@ -1,5 +1,5 @@
-<!DOCTYPE html>
 {% load static %}
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -40,6 +40,7 @@
 
     .dashboard { display: flex; flex-direction: column; height: 100vh; }
 
+    /* TOPBAR */
     .topbar {
       display: flex; align-items: center; gap: 16px;
       padding: 0 24px; height: 60px;
@@ -56,8 +57,7 @@
       background: #fff;
     }
     .brand-logo img {
-      width: 100%;
-      height: 100%;
+      width: 100%; height: 100%;
       object-fit: cover;
       display: block;
     }
@@ -141,8 +141,12 @@
       border-bottom: 1px solid var(--border);
     }
     .card-title { font-weight: 600; font-size: 14px; }
-    .card-meta  { font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 12px; }
-    .card-body  { flex: 1; position: relative; min-height: 0; }
+    .card-meta  {
+      font-size: 12px;
+      color: var(--text-muted);
+      display: flex; align-items: center; gap: 12px;
+    }
+    .card-body { flex: 1; position: relative; min-height: 0; }
     #map { position: absolute; inset: 0; }
 
     .btn-reset {
@@ -258,7 +262,12 @@
         <div class="card-header">
           <div class="card-title">Risk map</div>
           <div class="card-meta">
-            <span>Live monitoring</span>
+            <label style="display: inline-flex; align-items: center; gap: 6px;">
+              Date:
+              <select id="periodPicker" class="btn-reset" style="cursor: pointer;">
+                <option value="">All time</option>
+              </select>
+            </label>
             <button class="btn-reset" id="btnReset">Clear route</button>
           </div>
         </div>
@@ -381,11 +390,48 @@
       return n + ' zones require attention';
     }
 
+    // ===== Period filter (giornaliero) =====
+    let currentPeriod = { year: null, month: null, day: null };
+
+    function appendPeriodParams(params) {
+      if (currentPeriod.year)  params.set('year',  currentPeriod.year);
+      if (currentPeriod.month) params.set('month', currentPeriod.month);
+      if (currentPeriod.day)   params.set('day',   currentPeriod.day);
+    }
+
+    async function loadPeriods() {
+      const res = await fetch("{% url 'enki_dashboard:historical_periods' %}");
+      const { days } = await res.json();
+      const sel = document.getElementById('periodPicker');
+      for (const { year, month, day } of days) {
+        const opt = document.createElement('option');
+        opt.value = `${year}-${month}-${day}`;
+        const dt = new Date(Date.UTC(year, month - 1, day));
+        opt.textContent = dt.toLocaleDateString('it-IT', {
+          day: 'numeric', month: 'short', year: 'numeric'
+        });
+        sel.appendChild(opt);
+      }
+    }
+
+    document.getElementById('periodPicker').addEventListener('change', (e) => {
+      const v = e.target.value;
+      if (v) {
+        const [y, m, d] = v.split('-').map(Number);
+        currentPeriod = { year: y, month: m, day: d };
+      } else {
+        currentPeriod = { year: null, month: null, day: null };
+      }
+      floodToken++;
+      refresh();
+    });
+
     // ===== Routing state =====
     let pointA = null, pointB = null;
     let markerA = null, markerB = null;
     let pathLayer = null;
     let routeToken = 0;
+    let floodToken = 0;
 
     function setHint(text) {
       document.getElementById('routeHint').textContent = text;
@@ -393,26 +439,24 @@
 
     async function computeRoute() {
       if (!pointA || !pointB) return;
-      const myToken = routeToken;     // catturo il token corrente
+      const myToken = routeToken;
       const params = new URLSearchParams({
         a_lat: pointA.lat, a_lon: pointA.lng,
         b_lat: pointB.lat, b_lon: pointB.lng,
       });
+      appendPeriodParams(params);
+
       try {
         const res = await fetch("{% url 'enki_dashboard:route' %}?" + params);
-    
-        // Se nel frattempo qualcuno ha resettato, ignora questo risultato
         if (myToken !== routeToken) return;
-    
+
         if (!res.ok) {
           setHint(res.status === 404 ? 'No path available' : 'Routing error');
           return;
         }
         const { path } = await res.json();
-    
-        // Doppio check: anche dopo il parsing JSON
         if (myToken !== routeToken) return;
-    
+
         if (pathLayer) map.removeLayer(pathLayer);
         pathLayer = L.polyline(path, {
           color: '#06b6d4',
@@ -427,7 +471,7 @@
     }
 
     function resetRoute() {
-      routeToken++;                  // invalida ogni computeRoute in volo
+      routeToken++;
       if (markerA)   { map.removeLayer(markerA);   markerA = null; }
       if (markerB)   { map.removeLayer(markerB);   markerB = null; }
       if (pathLayer) { map.removeLayer(pathLayer); pathLayer = null; }
@@ -448,7 +492,6 @@
           setHint('Spawn failed: ' + (err.error || res.status));
           return;
         }
-        //setHint('Flood spawned · refreshing…');
         refresh();
       } catch (err) {
         console.error('spawn failed:', err);
@@ -461,7 +504,6 @@
         spawnFloodAt(e.latlng);
         return;
       }
-
       if (!pointA) {
         pointA = e.latlng;
         markerA = L.marker(e.latlng).addTo(map).bindTooltip('A', { permanent: true, direction: 'top' });
@@ -484,9 +526,18 @@
     let floodLayer = null;
 
     async function loadFloods() {
-      const res = await fetch("{% url 'enki_dashboard:flood_data' %}");
+      const myToken = floodToken;
+    
+      const params = new URLSearchParams();
+      appendPeriodParams(params);
+      const url = "{% url 'enki_dashboard:flood_data' %}" +
+                  (params.toString() ? '?' + params : '');
+      const res = await fetch(url);
+      if (myToken !== floodToken) return;   // periodo cambiato nel frattempo
+    
       const { bounds, size, data } = await res.json();
-
+      if (myToken !== floodToken) return;   // doppio check
+    
       const canvas = document.createElement('canvas');
       canvas.width = size; canvas.height = size;
       const ctx = canvas.getContext('2d');
@@ -537,7 +588,6 @@
         String(now.getMinutes()).padStart(2, '0') + ':' +
         String(now.getSeconds()).padStart(2, '0');
 
-      // If a route is active, recompute against the new flood map
       if (pointA && pointB) computeRoute();
     }
 
@@ -546,6 +596,7 @@
     }
 
     const REFRESH_MS = {{ refresh_ms }};
+    loadPeriods();
     refresh();
     setInterval(refresh, REFRESH_MS);
   </script>
