@@ -1,9 +1,7 @@
 from pathlib import Path
 import math
-import random
-import threading
-import time
 import json
+import threading
 
 import numpy as np
 import osmnx as ox
@@ -17,12 +15,23 @@ from django.views.decorators.csrf import csrf_exempt
 ROME_LAT   = 41.8931
 ROME_LON   = 12.4828
 PIXEL_M    = 40
-SIZE       = 256
+SIZE       = 512
 REFRESH_MS = 100
-SIM_TICK_S = 1.0
 
-GRAPH_PATH = Path("data/rome_graph.graphml")
+GRAPH_PATH      = Path("data/rome_graph.graphml")
+HISTORICAL_PATH = Path("data/historical_events_rome.geojson")
 
+# Parametri visivi degli eventi storici sulla heatmap
+HISTORICAL_SIGMA = 5.0   # raggio del blob in pixel (~200 m con PIXEL_M=40)
+HISTORICAL_PEAK  = 0.85  # intensita' "danger" ma non al massimo
+
+_lock = threading.Lock()
+_extra_blobs = []   # blob aggiunti manualmente con Shift+Click
+
+SIGMA_MIN, SIGMA_MAX = 3.0, 9.0
+PEAK_MIN,  PEAK_MAX  = 0.05, 1.0
+
+# --- Carico il grafo una volta sola all'avvio ---
 _GRAPH = None
 def _load_graph():
     global _GRAPH
@@ -61,101 +70,168 @@ def map_view(request):
 
 
 # ============================================================
-# MOCKUP FLOOD STATE (uguale a prima)
+# HISTORICAL EVENTS -> matrice di flood
 # ============================================================
-_blobs = []
-_last_tick_at = None
-_lock  = threading.Lock()
-SIGMA_MIN, SIGMA_MAX = 3.0, 9.0
-PEAK_MIN,  PEAK_MAX  = 0.05, 1.0
+# Carica una volta sola, calcola la matrice una volta sola: e' statica.
+
+_historical_blobs = None  # lista di {cy, cx, sigma, peak} in coordinate griglia
+_historical_matrix = None  # np.ndarray (SIZE, SIZE) gia' renderizzata
+
+def _latlon_to_grid(lat, lon, bounds):
+    """Converte (lat, lon) in (riga, colonna) della griglia. None se fuori."""
+    if not (bounds["south"] <= lat <= bounds["north"] and
+            bounds["west"]  <= lon <= bounds["east"]):
+        return None
+    ny = (bounds["north"] - lat) / (bounds["north"] - bounds["south"])
+    nx = (lon - bounds["west"])  / (bounds["east"]  - bounds["west"])
+    cy = max(0, min(SIZE - 1, int(ny * SIZE)))
+    cx = max(0, min(SIZE - 1, int(nx * SIZE)))
+    return cy, cx
 
 
-def _spawn_blob():
-    sigma  = random.uniform(SIGMA_MIN, SIGMA_MAX)
-    margin = int(3 * sigma) + 1
-    return {
-        "cy":    random.randint(margin, SIZE - margin),
-        "cx":    random.randint(margin, SIZE - margin),
-        "sigma": sigma,
-        "peak":  random.uniform(0.4, 1.0),
-    }
+def _load_historical_blobs():
+    """Legge il GeoJSON e converte ogni feature in un blob della griglia."""
+    global _historical_blobs
+    if _historical_blobs is not None:
+        return _historical_blobs
+
+    if not HISTORICAL_PATH.exists():
+        raise RuntimeError(f"Manca {HISTORICAL_PATH}")
+
+    with open(HISTORICAL_PATH, encoding="utf-8") as f:
+        geojson = json.load(f)
+
+    bounds = _matrix_bounds()
+    blobs = []
+    for feat in geojson["features"]:
+        lon, lat = feat["geometry"]["coordinates"]
+        pos = _latlon_to_grid(lat, lon, bounds)
+        if pos is None:
+            continue   # eventi fuori dalla griglia (es. Civitavecchia, Bracciano)
+        cy, cx = pos
+        blobs.append({
+            "cy": cy, "cx": cx,
+            "sigma": HISTORICAL_SIGMA,
+            "peak":  HISTORICAL_PEAK,
+        })
+    _historical_blobs = blobs
+    return blobs
 
 
-def _clamp_in_bounds(b):
-    margin = int(3 * b["sigma"]) + 1
-    b["cy"] = max(margin, min(SIZE - margin, b["cy"]))
-    b["cx"] = max(margin, min(SIZE - margin, b["cx"]))
+def _build_historical_matrix():
+    """Renderizza una sola volta la matrice cumulativa degli eventi storici."""
+    global _historical_matrix
+    if _historical_matrix is not None:
+        return _historical_matrix
 
-
-def _evolve_blob(b):
-    action = random.choices(
-        ["stay", "move", "grow", "shrink", "intensify", "weaken", "disappear"],
-        weights=[78,    10,    3,      3,         2,          2,        2],
-    )[0]
-    if action == "stay":      return True
-    if action == "move":
-        b["cy"] += random.randint(-4, 4)
-        b["cx"] += random.randint(-4, 4)
-        _clamp_in_bounds(b); return True
-    if action == "grow":
-        b["sigma"] = min(SIGMA_MAX, b["sigma"] + random.uniform(0.3, 0.8))
-        _clamp_in_bounds(b); return True
-    if action == "shrink":
-        b["sigma"] = max(SIGMA_MIN, b["sigma"] - random.uniform(0.3, 0.8))
-        return True
-    if action == "intensify":
-        b["peak"] = min(PEAK_MAX, b["peak"] + random.uniform(0.05, 0.15))
-        return True
-    if action == "weaken":
-        b["peak"] -= random.uniform(0.05, 0.15)
-        return b["peak"] >= PEAK_MIN
-    return False
-
-def _step_state():
-    global _blobs, _last_tick_at
-    with _lock:
-        now = time.monotonic()
-
-        if not _blobs:
-            _blobs = [_spawn_blob() for _ in range(random.randint(2, 5))]
-            _last_tick_at = now
-            return list(_blobs)
-
-        elapsed = now - (_last_tick_at or now)
-        n_ticks = int(elapsed // SIM_TICK_S)
-        if n_ticks <= 0:
-            return list(_blobs)
-
-        _last_tick_at = (_last_tick_at or now) + n_ticks * SIM_TICK_S
-        n_ticks = min(n_ticks, 60)
-
-        for _ in range(n_ticks):
-            _blobs = [b for b in _blobs if _evolve_blob(b)]
-            if random.random() < 0.20:
-                _blobs.append(_spawn_blob())
-            if not _blobs:
-                _blobs.append(_spawn_blob())
-
-        return list(_blobs)
-
-def _build_matrix(blobs):
+    blobs = _load_historical_blobs()
     yy, xx = np.ogrid[:SIZE, :SIZE]
     matrix = np.zeros((SIZE, SIZE), dtype=np.float32)
     for b in blobs:
         d2 = (yy - b["cy"]) ** 2 + (xx - b["cx"]) ** 2
         matrix = np.maximum(matrix, b["peak"] * np.exp(-d2 / (2 * b["sigma"] ** 2)))
+    _historical_matrix = matrix
     return matrix
 
 
+# ============================================================
+# MOCKUP DI SIMULAZIONE EVOLUTIVA - DISATTIVATO
+# ============================================================
+# La generazione di blob casuali e la loro evoluzione (move/grow/shrink/...)
+# e' stata sostituita con la lettura statica degli eventi storici di Roma
+# (CittaClima.it). Lascio il codice qui sotto commentato come riferimento per
+# riattivarlo se serve una simulazione dinamica.
+#
+# import random
+# import threading
+# import time
+#
+# _blobs = []
+# _lock  = threading.Lock()
+# _last_tick_at = None
+# SIM_TICK_S = 1.0
+# SIGMA_MIN, SIGMA_MAX = 3.0, 9.0
+# PEAK_MIN,  PEAK_MAX  = 0.05, 1.0
+#
+# def _spawn_blob():
+#     sigma  = random.uniform(SIGMA_MIN, SIGMA_MAX)
+#     margin = int(3 * sigma) + 1
+#     return {
+#         "cy":    random.randint(margin, SIZE - margin),
+#         "cx":    random.randint(margin, SIZE - margin),
+#         "sigma": sigma,
+#         "peak":  random.uniform(0.4, 1.0),
+#     }
+#
+# def _clamp_in_bounds(b):
+#     margin = int(3 * b["sigma"]) + 1
+#     b["cy"] = max(margin, min(SIZE - margin, b["cy"]))
+#     b["cx"] = max(margin, min(SIZE - margin, b["cx"]))
+#
+# def _evolve_blob(b):
+#     action = random.choices(
+#         ["stay", "move", "grow", "shrink", "intensify", "weaken", "disappear"],
+#         weights=[78,    10,    3,      3,         2,          2,        2],
+#     )[0]
+#     if action == "stay":      return True
+#     if action == "move":
+#         b["cy"] += random.randint(-4, 4)
+#         b["cx"] += random.randint(-4, 4)
+#         _clamp_in_bounds(b); return True
+#     if action == "grow":
+#         b["sigma"] = min(SIGMA_MAX, b["sigma"] + random.uniform(0.3, 0.8))
+#         _clamp_in_bounds(b); return True
+#     if action == "shrink":
+#         b["sigma"] = max(SIGMA_MIN, b["sigma"] - random.uniform(0.3, 0.8))
+#         return True
+#     if action == "intensify":
+#         b["peak"] = min(PEAK_MAX, b["peak"] + random.uniform(0.05, 0.15))
+#         return True
+#     if action == "weaken":
+#         b["peak"] -= random.uniform(0.05, 0.15)
+#         return b["peak"] >= PEAK_MIN
+#     return False
+#
+# def _step_state():
+#     global _blobs, _last_tick_at
+#     with _lock:
+#         now = time.monotonic()
+#         if not _blobs:
+#             _blobs = [_spawn_blob() for _ in range(random.randint(2, 5))]
+#             _last_tick_at = now
+#             return list(_blobs)
+#         elapsed = now - (_last_tick_at or now)
+#         n_ticks = int(elapsed // SIM_TICK_S)
+#         if n_ticks <= 0:
+#             return list(_blobs)
+#         _last_tick_at = (_last_tick_at or now) + n_ticks * SIM_TICK_S
+#         n_ticks = min(n_ticks, 60)
+#         for _ in range(n_ticks):
+#             _blobs = [b for b in _blobs if _evolve_blob(b)]
+#             if random.random() < 0.20: _blobs.append(_spawn_blob())
+#             if not _blobs:             _blobs.append(_spawn_blob())
+#         return list(_blobs)
+
+
 def _current_matrix():
+    """Matrice corrente: storica + eventuali blob spawnati manualmente."""
+    matrix = _build_historical_matrix().copy()
+
     with _lock:
-        blobs_snapshot = list(_blobs)
-    return _build_matrix(blobs_snapshot)
+        extras = list(_extra_blobs)
+
+    if extras:
+        yy, xx = np.ogrid[:SIZE, :SIZE]
+        for b in extras:
+            d2 = (yy - b["cy"]) ** 2 + (xx - b["cx"]) ** 2
+            blob = b["peak"] * np.exp(-d2 / (2 * b["sigma"] ** 2))
+            matrix = np.maximum(matrix, blob)
+
+    return matrix
 
 
 def flood_data(request):
-    blobs = _step_state()
-    matrix = _build_matrix(blobs)
+    matrix = _current_matrix()
     return JsonResponse({
         "bounds": _matrix_bounds(),
         "size":   SIZE,
@@ -165,13 +241,17 @@ def flood_data(request):
 SPAWN_DEFAULT_SIGMA = 6.0
 SPAWN_DEFAULT_PEAK  = 0.9
 
+
+def _clamp_blob_in_bounds(b):
+    margin = int(3 * b["sigma"]) + 1
+    b["cy"] = max(margin, min(SIZE - margin, b["cy"]))
+    b["cx"] = max(margin, min(SIZE - margin, b["cx"]))
+
+
 @csrf_exempt
 @require_http_methods(["POST"])
 def spawn_flood(request):
-    """Inserisce manualmente un blob alla posizione (lat, lon) indicata.
-
-    Body JSON: { "lat": ..., "lon": ..., "sigma": optional, "peak": optional }
-    """
+    """Aggiunge un blob alla posizione (lat, lon)."""
     try:
         body = json.loads(request.body)
         lat = float(body["lat"])
@@ -184,27 +264,38 @@ def spawn_flood(request):
     sigma = max(SIGMA_MIN, min(SIGMA_MAX, sigma))
     peak  = max(PEAK_MIN,  min(PEAK_MAX,  peak))
 
-    # Lat/lon -> coordinate griglia
     bounds = _matrix_bounds()
-    if not (bounds["south"] <= lat <= bounds["north"] and
-            bounds["west"]  <= lon <= bounds["east"]):
+    pos = _latlon_to_grid(lat, lon, bounds)
+    if pos is None:
         return JsonResponse({"error": "point outside monitored area"}, status=400)
 
-    ny = (bounds["north"] - lat) / (bounds["north"] - bounds["south"])
-    nx = (lon - bounds["west"])  / (bounds["east"]  - bounds["west"])
-    cy = max(0, min(SIZE - 1, int(ny * SIZE)))
-    cx = max(0, min(SIZE - 1, int(nx * SIZE)))
-
+    cy, cx = pos
     blob = {"cy": cy, "cx": cx, "sigma": sigma, "peak": peak}
-    _clamp_in_bounds(blob)
+    _clamp_blob_in_bounds(blob)
 
     with _lock:
-        _blobs.append(blob)
+        _extra_blobs.append(blob)
 
     return JsonResponse({"ok": True, "blob": blob})
 
+# ============================================================
+# SPAWN MANUALE - mantiene la possibilita' di aggiungere blob al volo
+# ============================================================
+# Per ora disabilitato: la matrice e' statica. Se vuoi riattivarlo, dovrai
+# rimettere _blobs e _lock dalla sezione commentata sopra e fare overlay.
+#
+# @csrf_exempt
+# @require_http_methods(["POST"])
+# def spawn_flood(request):
+#     return JsonResponse({"error": "disabled in historical mode"}, status=400)
+
+
+# ============================================================
+# ROUTING (A* sul grafo, costo = lunghezza * (1 + flood * penalty))
+# ============================================================
 FLOOD_PENALTY   = 80
 BLOCK_THRESHOLD = 0.85
+
 
 def _flood_at(matrix, lat, lon, bounds):
     if not (bounds["south"] <= lat <= bounds["north"] and
@@ -220,16 +311,26 @@ def _flood_at(matrix, lat, lon, bounds):
 def _edge_flood_cost(G, u, v, k, matrix, bounds):
     edge = G.edges[u, v, k]
     length = edge.get("length", 1.0)
-
     lat_u, lon_u = G.nodes[u]["y"], G.nodes[u]["x"]
     lat_v, lon_v = G.nodes[v]["y"], G.nodes[v]["x"]
     mid_lat = (lat_u + lat_v) / 2
     mid_lon = (lon_u + lon_v) / 2
     f = _flood_at(matrix, mid_lat, mid_lon, bounds)
-
     if f >= BLOCK_THRESHOLD:
         return float("inf")
     return length * (1 + f * FLOOD_PENALTY)
+
+
+def _nearest_node(G, lat, lon):
+    cos_lat = math.cos(math.radians(lat))
+    best_node, best_d2 = None, float("inf")
+    for n, d in G.nodes(data=True):
+        dy = (d["y"] - lat) * 111_000
+        dx = (d["x"] - lon) * 111_000 * cos_lat
+        d2 = dy * dy + dx * dx
+        if d2 < best_d2:
+            best_d2, best_node = d2, n
+    return best_node
 
 
 @require_http_methods(["GET"])
@@ -246,13 +347,12 @@ def route(request):
     bounds = _matrix_bounds()
     matrix = _current_matrix()
 
-    src_node = ox.distance.nearest_nodes(G, X=a_lon, Y=a_lat)
-    dst_node = ox.distance.nearest_nodes(G, X=b_lon, Y=b_lat)
+    src_node = _nearest_node(G, a_lat, a_lon)
+    dst_node = _nearest_node(G, b_lat, b_lon)
 
     def heuristic(n1, n2):
         y1, x1 = G.nodes[n1]["y"], G.nodes[n1]["x"]
         y2, x2 = G.nodes[n2]["y"], G.nodes[n2]["x"]
-        # ~ metri per gradi alla latitudine di Roma
         dy = (y1 - y2) * 111_000
         dx = (x1 - x2) * 111_000 * math.cos(math.radians(ROME_LAT))
         return math.hypot(dx, dy)

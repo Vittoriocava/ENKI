@@ -15,7 +15,7 @@ from django.core.management.base import BaseCommand
 ROME_LAT = 41.8931
 ROME_LON = 12.4828
 PIXEL_M  = 40
-SIZE     = 256
+SIZE     = 512
 
 PBF_PATH    = Path("data/centro-latest.osm.pbf")
 OUTPUT_PATH = Path("data/rome_graph.graphml")

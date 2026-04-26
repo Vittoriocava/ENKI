@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+{% load static %}
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -39,7 +40,6 @@
 
     .dashboard { display: flex; flex-direction: column; height: 100vh; }
 
-    /* TOPBAR */
     .topbar {
       display: flex; align-items: center; gap: 16px;
       padding: 0 24px; height: 60px;
@@ -50,9 +50,16 @@
     .brand { display: flex; align-items: center; gap: 12px; }
     .brand-logo {
       width: 34px; height: 34px;
-      background: rgba(255,255,255,0.15);
       border-radius: 6px;
+      overflow: hidden;
       display: grid; place-items: center;
+      background: #fff;
+    }
+    .brand-logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
     }
     .brand-text { line-height: 1.2; }
     .brand-name { font-weight: 700; font-size: 16px; letter-spacing: 0.5px; }
@@ -206,11 +213,7 @@
     <header class="topbar">
       <div class="brand">
         <div class="brand-logo">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-               stroke="currentColor" stroke-width="2.4"
-               stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 2.5C12 2.5 5 10 5 14.5a7 7 0 0 0 14 0C19 10 12 2.5 12 2.5z"/>
-          </svg>
+          <img src="{% static 'enki_dashboard/enki.jpeg' %}" alt="ENKI">
         </div>
         <div class="brand-text">
           <div class="brand-name">ENKI</div>
@@ -382,6 +385,7 @@
     let pointA = null, pointB = null;
     let markerA = null, markerB = null;
     let pathLayer = null;
+    let routeToken = 0;
 
     function setHint(text) {
       document.getElementById('routeHint').textContent = text;
@@ -389,18 +393,26 @@
 
     async function computeRoute() {
       if (!pointA || !pointB) return;
-      <!-- setHint('Computing safe route…'); -->
+      const myToken = routeToken;     // catturo il token corrente
       const params = new URLSearchParams({
         a_lat: pointA.lat, a_lon: pointA.lng,
         b_lat: pointB.lat, b_lon: pointB.lng,
       });
       try {
         const res = await fetch("{% url 'enki_dashboard:route' %}?" + params);
+    
+        // Se nel frattempo qualcuno ha resettato, ignora questo risultato
+        if (myToken !== routeToken) return;
+    
         if (!res.ok) {
           setHint(res.status === 404 ? 'No path available' : 'Routing error');
           return;
         }
         const { path } = await res.json();
+    
+        // Doppio check: anche dopo il parsing JSON
+        if (myToken !== routeToken) return;
+    
         if (pathLayer) map.removeLayer(pathLayer);
         pathLayer = L.polyline(path, {
           color: '#06b6d4',
@@ -415,12 +427,14 @@
     }
 
     function resetRoute() {
-          if (markerA)  { map.removeLayer(markerA);  markerA = null; }
-          if (markerB)  { map.removeLayer(markerB);  markerB = null; }
-          if (pathLayer){ map.removeLayer(pathLayer); pathLayer = null; }
-          pointA = null; pointB = null;
-          setHint('Click: route · Shift+Click: spawn flood');
-        }
+      routeToken++;                  // invalida ogni computeRoute in volo
+      if (markerA)   { map.removeLayer(markerA);   markerA = null; }
+      if (markerB)   { map.removeLayer(markerB);   markerB = null; }
+      if (pathLayer) { map.removeLayer(pathLayer); pathLayer = null; }
+      pointA = null;
+      pointB = null;
+      setHint('Click: route · Shift+Click: spawn flood');
+    }
 
     async function spawnFloodAt(latlng) {
       try {
@@ -434,7 +448,7 @@
           setHint('Spawn failed: ' + (err.error || res.status));
           return;
         }
-        <!-- setHint('Flood spawned · refreshing…'); -->
+        //setHint('Flood spawned · refreshing…');
         refresh();
       } catch (err) {
         console.error('spawn failed:', err);
