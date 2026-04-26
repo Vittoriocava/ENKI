@@ -11,6 +11,8 @@
         href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
         crossorigin=""/>
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"/>
 
   <style>
     :root {
@@ -160,6 +162,28 @@
     }
     .btn-reset:hover { color: var(--text); border-color: var(--text-muted); }
 
+    /* Flatpickr overrides */
+    .flatpickr-input {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 4px 10px;
+      font: inherit; font-size: 12px;
+      color: var(--text);
+      cursor: pointer;
+      width: 110px;
+    }
+    .flatpickr-day.flood-day {
+      background: #fee2e2;
+      color: #dc2626;
+      font-weight: 600;
+    }
+    .flatpickr-day.flood-day:hover,
+    .flatpickr-day.flood-day.selected {
+      background: #dc2626;
+      color: #fff;
+    }
+
     /* LEGEND */
     .legend {
       position: absolute;
@@ -264,10 +288,9 @@
           <div class="card-meta">
             <label style="display: inline-flex; align-items: center; gap: 6px;">
               Date:
-              <select id="periodPicker" class="btn-reset" style="cursor: pointer;">
-                <option value="">All time</option>
-              </select>
+              <input type="text" id="periodPicker" placeholder="All time" readonly/>
             </label>
+            <button class="btn-reset" id="btnClearDate">Clear date</button>
             <button class="btn-reset" id="btnReset">Clear route</button>
           </div>
         </div>
@@ -287,6 +310,7 @@
     </main>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
           integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
           crossorigin=""></script>
@@ -392,6 +416,7 @@
 
     // ===== Period filter (giornaliero) =====
     let currentPeriod = { year: null, month: null, day: null };
+    let picker = null;
 
     function appendPeriodParams(params) {
       if (currentPeriod.year)  params.set('year',  currentPeriod.year);
@@ -402,26 +427,36 @@
     async function loadPeriods() {
       const res = await fetch("{% url 'enki_dashboard:historical_periods' %}");
       const { days } = await res.json();
-      const sel = document.getElementById('periodPicker');
-      for (const { year, month, day } of days) {
-        const opt = document.createElement('option');
-        opt.value = `${year}-${month}-${day}`;
-        const dt = new Date(Date.UTC(year, month - 1, day));
-        opt.textContent = dt.toLocaleDateString('it-IT', {
-          day: 'numeric', month: 'short', year: 'numeric'
-        });
-        sel.appendChild(opt);
-      }
+
+      const floodSet = new Set(
+        days.map(({ year, month, day }) =>
+          `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`)
+      );
+
+      picker = flatpickr('#periodPicker', {
+        dateFormat: 'Y-m-d',
+        allowInput: false,
+        onDayCreate(dObj, dStr, fp, dayElem) {
+          const d = dayElem.dateObj;
+          const iso = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+          if (floodSet.has(iso)) dayElem.classList.add('flood-day');
+        },
+        onChange(selectedDates) {
+          if (!selectedDates.length) {
+            currentPeriod = { year: null, month: null, day: null };
+          } else {
+            const d = selectedDates[0];
+            currentPeriod = { year: d.getFullYear(), month: d.getMonth() + 1, day: d.getDate() };
+          }
+          floodToken++;
+          refresh();
+        },
+      });
     }
 
-    document.getElementById('periodPicker').addEventListener('change', (e) => {
-      const v = e.target.value;
-      if (v) {
-        const [y, m, d] = v.split('-').map(Number);
-        currentPeriod = { year: y, month: m, day: d };
-      } else {
-        currentPeriod = { year: null, month: null, day: null };
-      }
+    document.getElementById('btnClearDate').addEventListener('click', () => {
+      picker && picker.clear();
+      currentPeriod = { year: null, month: null, day: null };
       floodToken++;
       refresh();
     });

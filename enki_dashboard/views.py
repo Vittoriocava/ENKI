@@ -41,6 +41,26 @@ SPAWN_DEFAULT_PEAK  = 0.9
 FLOOD_PENALTY   = 80     # quanto un edge "allagato" costa di piu'
 BLOCK_THRESHOLD = 0.85   # sopra questa intensita' l'edge e' impassable
 
+# Date degli eventi alluvione validati (da generate_dataset.py, feat/dataset)
+FLOOD_EVENT_DATES = [
+    (2017,  5, 19), (2017,  9,  3), (2017, 11,  5), (2017, 12, 27),
+    (2018,  3,  6), (2018,  4,  8), (2018,  7, 23), (2018, 10,  9),
+    (2018, 10, 21), (2018, 10, 22), (2018, 11, 20),
+    (2019,  5, 12), (2019,  5, 30), (2019,  7, 27), (2019,  8, 25),
+    (2019,  9,  2), (2019, 10,  2), (2019, 11, 11), (2019, 12,  2),
+    (2020,  9, 23), (2020, 10,  7), (2020, 10, 15),
+    (2021,  1,  3), (2021,  1, 23), (2021,  1, 24), (2021,  4, 19),
+    (2021,  6,  8), (2021, 11,  8), (2021, 12,  2),
+    (2022,  4, 22), (2022,  8,  6), (2022,  8,  9), (2022, 10, 11),
+    (2022, 12,  3), (2022, 12, 13),
+    (2023,  4, 15), (2023,  6, 11), (2023,  6, 13), (2023,  6, 14),
+    (2023, 10, 16), (2023, 10, 24), (2023, 12,  5),
+    (2024,  9,  3), (2024,  9, 13), (2024,  9, 25), (2024, 10,  5),
+    (2024, 10, 24),
+    (2025,  5,  6),# (2025,  7, 13), (2025,  9, 10),
+    # (2026,  1,  6), (2026,  1, 28), (2026,  3, 12),
+]
+
 # Stato condiviso
 _lock         = threading.Lock()
 _extra_blobs  = []     # blob aggiunti manualmente con Shift+Click
@@ -115,11 +135,13 @@ def _load_historical_blobs():
             continue   # eventi fuori dalla griglia (es. Civitavecchia, Bracciano)
         cy, cx = pos
         props = feat["properties"]
+        raggio_m = props.get("raggio_m")
+        sigma = raggio_m / PIXEL_M if raggio_m else HISTORICAL_SIGMA
         blobs.append({
             "cy": cy, "cx": cx,
-            "sigma": HISTORICAL_SIGMA,
+            "sigma": sigma,
             "peak":  HISTORICAL_PEAK,
-            "ts_ms": props.get("data_evento"),  # millis Unix, puo' essere None
+            "ts_ms": props.get("data_evento"),
         })
     _historical_blobs = blobs
     return blobs
@@ -204,19 +226,10 @@ def flood_data(request):
 
 @require_http_methods(["GET"])
 def historical_periods(request):
-    """Date distinte presenti nei dati storici, per il picker giornaliero."""
-    blobs = _load_historical_blobs()
-    days = set()
-    for b in blobs:
-        ts = b.get("ts_ms")
-        if ts is None:
-            continue
-        d = datetime.fromtimestamp(ts / 1000, tz=timezone.utc)
-        days.add((d.year, d.month, d.day))
-
+    """Date degli eventi alluvione validati, per il picker giornaliero."""
     return JsonResponse({
         "days": sorted(
-            [{"year": y, "month": m, "day": d} for (y, m, d) in days],
+            [{"year": y, "month": m, "day": d} for (y, m, d) in FLOOD_EVENT_DATES],
             key=lambda x: (x["year"], x["month"], x["day"]),
             reverse=True,
         ),
