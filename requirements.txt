@@ -2,7 +2,80 @@
 #    uv pip compile pyproject.toml -o requirements.txt
 asgiref==3.11.1
     # via django
+branca==0.8.2
+    # via folium
+certifi==2026.4.22
+    # via
+    #   pyogrio
+    #   pyproj
+    #   requests
+charset-normalizer==3.4.7
+    # via requests
 django==6.0.4
     # via enki (pyproject.toml)
+folium==0.20.0
+    # via enki (pyproject.toml)
+geopandas==1.1.3
+    # via osmnx
+idna==3.13
+    # via requests
+jinja2==3.1.6
+    # via
+    #   branca
+    #   folium
+joblib==1.5.3
+    # via scikit-learn
+markupsafe==3.0.3
+    # via jinja2
+networkx==3.6.1
+    # via
+    #   enki (pyproject.toml)
+    #   osmnx
+numpy==2.4.4
+    # via
+    #   folium
+    #   geopandas
+    #   osmnx
+    #   pandas
+    #   pyogrio
+    #   scikit-learn
+    #   scipy
+    #   shapely
+osmnx==2.1.0
+    # via enki (pyproject.toml)
+packaging==26.2
+    # via
+    #   geopandas
+    #   pyogrio
+pandas==3.0.2
+    # via
+    #   geopandas
+    #   osmnx
+pyogrio==0.12.1
+    # via geopandas
+pyproj==3.7.2
+    # via geopandas
+python-dateutil==2.9.0.post0
+    # via pandas
+requests==2.33.1
+    # via
+    #   folium
+    #   osmnx
+scikit-learn==1.8.0
+    # via enki (pyproject.toml)
+scipy==1.17.1
+    # via scikit-learn
+shapely==2.1.2
+    # via
+    #   geopandas
+    #   osmnx
+six==1.17.0
+    # via python-dateutil
 sqlparse==0.5.5
     # via django
+threadpoolctl==3.6.0
+    # via scikit-learn
+urllib3==2.6.3
+    # via requests
+xyzservices==2026.3.0
+    # via folium
