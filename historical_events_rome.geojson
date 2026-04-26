@@ -1,0 +1,1221 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.502038452,
+          41.609210123
+        ]
+      },
+      "properties": {
+        "data_evento": 1600819200000,
+        "comune": "Ardea",
+        "descrizione": "Il nubifragio è stato così violento che ad Ardea è crollato il tetto di un supermercato. Non ci sono stati feriti, i dipendenti sono riusciti a fuggire, mentre non sembra ci fossero clienti nel momento in cui parte del soffitto è venuta giù a causa della pioggia. Nel resto della cittadina si sono verificati numerosi disagi con strade allagate ed il traffico fortemente rallentato. Rami sono caduti a terra in viale Forlì, mentre via Pratica di Mare si era allagata.",
+        "raggio_m": 500.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.632984,
+          41.716057
+        ]
+      },
+      "properties": {
+        "data_evento": 1523271600000,
+        "comune": "Ariccia",
+        "descrizione": "Enorme allagamento in via Cancelliera nel territorio tra i comuni di Ariccia e Albano, dove è esplosa una fognatura conseguenza del nubifragio che si è abbattuto sulla zona dei Castelli Romani. Grande disagio per la circolazione stradale e pericolo di sprofondamento. ",
+        "raggio_m": 500.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.210386235,
+          41.8221948440001
+        ]
+      },
+      "properties": {
+        "data_evento": 1609804800000,
+        "comune": "Fiumicino",
+        "descrizione": "Allagata la zona di \"Mare Nostrum\" a Focene, nel Comune di Fiumicino. La pioggia insistente ha provocato l'allagamento delle strade del comprensorio nella zona della foce del Tevere, da tempo soggetto a tale problematica come più volte segnalato con forza dai comitati locali. L'impianto fognario si è bloccato e l'acqua ha continuato a defluire dai tombini raggiungendo le portiere delle auto in sosta, superando i cancelli delle case.",
+        "raggio_m": 1000.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.665423259,
+          41.4614553530001
+        ]
+      },
+      "properties": {
+        "data_evento": 1601164800000,
+        "comune": "Nettuno",
+        "descrizione": "Forti piogge hanno colpito il Lazio, soprattutto tra le province di Roma e Latina.  La zona più colpita è stata quella di Nettuno, dove sono stati segnalati allagamenti diffusi: il parziale pluviometrico della stazione meteo ha segnato un valore di 83,5 mm. Le strade sono state letteralmente sommerse dall’acqua, così come le auto.",
+        "raggio_m": 1000.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.6592684840001,
+          41.4586573010001
+        ]
+      },
+      "properties": {
+        "data_evento": 1570406400000,
+        "comune": "Nettuno",
+        "descrizione": "Pioggia intensa questa mattina a Nettuno e allagamenti in diverse zone della città. A finire sott’acqua l’area del parcheggione di piazzale Berlinguer, sotto il livello stradale, che è rimasta inagibile per circa due ore. Completamente sott’acqua anche la zona del Santuario di Nostra Signora delle Grazie, che nonostante i lavori fatti in zona si conferma punto critico per la città.",
+        "raggio_m": 500.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.38577666,
+          41.922367541
+        ]
+      },
+      "properties": {
+        "data_evento": 1391126400000,
+        "comune": "Roma",
+        "descrizione": "La Capitale finisce sommersa da acqua e fango. Caduti in 12 ore fino a 130 millimetri d'acqua. Casalotti, Casal Selce, Selva Nera, Selva Candida, Casal del Marmo, Montespaccato, Pantan Monastero, tutti finiti sott'acqua, tutti sommersi. Sono esondati tutti i canali, varie strade hanno subito eventi franosi e molte case ai piani seminterrati sono state completamente invase dall’acqua, con danni ingentissimi.",
+        "raggio_m": 1000.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.53684873,
+          41.908164619
+        ]
+      },
+      "properties": {
+        "data_evento": 1573430400000,
+        "comune": "Roma",
+        "descrizione": "Allagamenti e traffico a Roma a causa delle forti piogge delle ultime ore. Il maltempo sulla Capitale sta creando disagi per il traffico su via Cristoforo Colombo e via del Mare, nel quadrante sud della città. Sul posto sono intervenute le pattuglie della polizia locale per agevolare la circolazione. Traffico intenso anche su via Trionfale, via Appia, via Tiburtina e Prenestina. Chiuso per allagamento un tunnel su via dei Due Ponti, nel quadrante nord di Roma. Così come piazzale del Verano all'altezza di via dell'Università, via Fosso della Magliana e via Tiburtina altezza civico 358. Anche la galleria Giovanni XXIII è chiusa dalla scorsa notte per allagamenti, in direzione San Giovanni e Tiburtina. Stessa cosa per un tratto della tangenziale Est di Roma, tra viale Castrense e lo svincolo A24, a causa delle forti piogge di queste ore: si registrano code e forti rallentamenti. La stazione della metropolitana Manzoni, a Roma, è stata chiusa in seguito di un allagamento.",
+        "raggio_m": 500.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.6110945290001,
+          41.9036570550001
+        ]
+      },
+      "properties": {
+        "data_evento": 1611360000000,
+        "comune": "Roma",
+        "descrizione": "Ancora allagamenti con la chiusura di un tratto di Via Collatina. Le forti piogge hanno portato all'allagamento della strada di via Capranesi. Nono sono state risparmiate altre aree della Capitale come in zona Tiburtina, Prenestina, Tiberina, Cassia e sulla via Appia.",
+        "raggio_m": 500.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.521437,
+          42.007216
+        ]
+      },
+      "properties": {
+        "data_evento": 1514332800000,
+        "comune": "Roma",
+        "descrizione": "Strade allagate a Roma ed il quartiere di Settebagni finito letteralmente sott'acqua. Interamente sommerso l'ingresso alla borgata, su via Salaria: la strada si è trasformata in un vero e proprio fiume in piena con l'acqua a sfiorare i bordi di marciapiedi e rotatoria.",
+        "raggio_m": 1000.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.4771853620001,
+          41.8212000240001
+        ]
+      },
+      "properties": {
+        "data_evento": 1509840000000,
+        "comune": "Roma",
+        "descrizione": "Due ore di forti piogge annunciate hanno comunque mandato il tilt la capitale, provocando danni e chiusure di 4 stazioni di metropolitana (Cinecittà, Lucio Sestio, Colli Albani e Battistini). Tra i danni le strade allagate, disagi alla circolazione, rallentamenti sul tratto urbano dell’A24 Roma Teramo ed un blackout in zona Tiburtina.",
+        "raggio_m": 500.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.5869430000001,
+          41.893919
+        ]
+      },
+      "properties": {
+        "data_evento": 1504396800000,
+        "comune": "Roma",
+        "descrizione": "Allagamenti e temporali intensi con ripercussioni soprattutto nel sistema della viabilità. A restare particolarmente colpita dal temporale notturno è risultata essere Roma Est. Il sottopasso del Raccordo Anunale dalle ore 2.30 è stato temporaneamente chiuso all'altezza di via Achille Vertunni, a causa dell'allagamento. Anche il sottopasso Ferroviario di via Guglielmo Sansoni, a partire da mezzanotte e mezza, ha subito lo stesso trattamento. Si è allagato e di conseguenza è stato chiuso. Problemi anche sulla via Prenestina all'altezza di Tor Tre Teste con strada allagati e notevoli difficoltà alla circolazione stradale.",
+        "raggio_m": 500.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.495056,
+          41.907515
+        ]
+      },
+      "properties": {
+        "data_evento": 1319068800000,
+        "comune": "Roma",
+        "descrizione": "Il fenomeno metereologico responsabile dell’evento temporalesco con caratteristiche alluvionali, ha preso le mosse a partire dal fronte Nord Atlantico, sul Mediterraneo, portando con se aria fredda polare che, spostandosi verso l’Italia centrale, ha richiamato venti dal quadrante meridionale portatori di aria calda e umida, responsabile dell’attività temporalesca. Le acque calde del Tirreno, immettendo vapore acqueo nel sistema, hanno reso ancora più instabile l’atmosfera, alimentando quindi il temporale e generando grandi accumuli pluviometrici che hanno esteso la distribuzione delle piogge su aree molto vaste con conseguente ingrossamento del Tevere e dell’Aniene.",
+        "raggio_m": 300.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.447127047,
+          41.907440681
+        ]
+      },
+      "properties": {
+        "data_evento": 1602028800000,
+        "comune": "Roma",
+        "descrizione": "Temporale a Roma con allagamenti ed alberi caduti a causa del vento. Colpito il quadrante nord, con allagamenti e rami spezzati. Chiusa anche la fermata Cipro della metropolitana.",
+        "raggio_m": 200.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.447187037,
+          41.803627356
+        ]
+      },
+      "properties": {
+        "data_evento": 1602720000000,
+        "comune": "Roma",
+        "descrizione": "Maltempo a Roma: strade allagate a Montesacro e su viale Cristoforo Colombo. Danni al mercato di Colli Albani a causa del forte vento. Allagamenti in via delle Isole Curzolane,  all'altezza dell'angolo via Giovanni Conti e in via Tor San Giovanni. Problemi anche in viale Jonio e via Pantelleria (foto Reporter Montesacro). Tra gli interventi legati ad allagamenti quelli di maggior rilievo si sono registrati in via Cristoforo Colombo, sotto il ponte del Gra direzione Roma ed in Via di Casal Palocco altezza Polisportiva.",
+        "raggio_m": 500.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.451105365,
+          41.8416305810001
+        ]
+      },
+      "properties": {
+        "data_evento": 1559174400000,
+        "comune": "Roma",
+        "descrizione": "Maltempo a Roma: strade chiuse causa allagamento. Nubifragio a Roma sud. La pioggia è caduta copiosamente creando disagi e difficoltà ad automobilisti e scooteristi. Le maggiori criticità al Trullo, Magliana, Colle del Sole ed all'Ardeatino, dove gli allagamenti hanno sorpreso alcuni automobilisti che hanno visto l'acqua arrivare sino all'altezza delle portiere.  E' stato necessario chiudere provissoriamente via della Magliana all'altezza del civico 640, con il traffico deviato su via del Fosso della Magliana.",
+        "raggio_m": 500.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.5407300000001,
+          41.872055
+        ]
+      },
+      "properties": {
+        "data_evento": 1520294400000,
+        "comune": "Roma",
+        "descrizione": "Traffico in tilt a Roma a causa della poggia caduta ininterrottamennte per diverse ore sulla città. Molti rallentamenti sono stati provocati dal dissesto del manto stradale: voragini e buche si sono riempite d’acqua facendo impantanare alcuni veicoli e costringendo i vigili a presidiare l'asfalto franato. Lunghe code da viale Castrense, dove si è aperta una voragine, all'inizio della Tangenziale Est in direzione Tiburtina, \"sorvegliata\" dai vigili. A causa del maltempo è stata chiusa al traffico per alcune ore via di Tor Pignattara in direzione Tuscolana. In mattinata è stato chiuso per allagamento lo svincolo dell'Autostrada Aeroporto di Fiumicino in uscita fra l'allacciamento A12 Roma-Civitavecchia e allacciamento del Grande Raccordo Anulare in direzione Fiumicino.",
+        "raggio_m": 1000.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.4361074230001,
+          41.895116429
+        ]
+      },
+      "properties": {
+        "data_evento": 1495152000000,
+        "comune": "Roma",
+        "descrizione": "L'ondata di maltempo abbattutasi su Roma ha registrato diversi disagi dovuti agli allagamenti. Traffico in tilt su Via della Maglianella, Viale Vaticano (altezza Leone IV), Via dei Tor de Cenci, Viale Filarete, Via Aurelia Antica (in prossimità dell'entrata di Villa Pamphili) e in Via Collatina. Danni anche alla linea tram 8 che è stata limitata alla stazione Trastevere, con conseguenti disagi per i passeggeri. Le forti piogge stanno mettendo a dura prova le infrastrutture. In Via Pineta Sacchetti (all'incrocio con via Pio IX) è crollato il muro di cinta di un supermercato. Sul posto sono intervenuti i vigili del fuoco. Il muro, formato da mattoni di tufo per una lunghezza di metri 20 per un'altezza di 3 metri, ha bloccato la rampa di accesso all'attività commerciale e alcuni box condominiali. Nuovo nubifragio in mattinata, chiusa per ore stazione metro A e la linea tram 8. Danneggiate due vetture. Sempre inorno alle 14 una grossa voragine, delle dimensioni di 5 metri e profonda altrettanti, si è aperta in via Giuseppe Parini, in zona Gianicolense.  Chiuso, sempre a causa di una voragine, un tratto di via Montepulciano in zona Tuscolana. Alberi caduti in varie zone tra cui un albero in via Casilina, sui bianari del trenino ed un albero a via Grimaldi, nel XII municipio. Black out e disagi in tutta la città.",
+        "raggio_m": 500.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.573669474,
+          41.8950094650001
+        ]
+      },
+      "properties": {
+        "data_evento": 1539043200000,
+        "comune": "Roma",
+        "descrizione": "Allagamento su via Prenestina e viale Palmiro Togliatti. E' bastata poco più di un'ora di pioggia per far allagare la strada con automobilisti in panne e vetture in sosta sommerse sino al finestrino. Disagi in particolare all'altezza dell'incrocio con viale Palmiro Togliatti, nel piazzale antistante la sede del V Municipio.",
+        "raggio_m": 500.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.4691990000001,
+          41.9659330000001
+        ]
+      },
+      "properties": {
+        "data_evento": 1523145600000,
+        "comune": "Roma",
+        "descrizione": "Maltempo a Roma, pioggia e vento mettono in ginocchio la città: 110 interventi dei vigili del fuoco dalle 8 alle 16. Traffico e disagi dalla Cassia alla via del Mare per caduta alberi, via dei due Ponti chiusa per allagamento e poi riaperta.",
+        "raggio_m": 500.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.5590782560001,
+          41.894498345
+        ]
+      },
+      "properties": {
+        "data_evento": 1540080000000,
+        "comune": "Roma",
+        "descrizione": "Nubifragio e grandine a Roma. La pioggia intensa ha causato allagamenti e disagi in tutta la città, accompagnata anche dal forte vento e dalla grandine che si è depositata sull'asfalto. In alcune zone della Capitale gli automobilisti sono rimasti bloccati nei loro mezzi, con l'acqua che ha raggiunto anche i 30 centimetri. Alcune stazioni della metro allagate e per questo chiuse, così come la sede di un municipio, e diversi automobilisti rimasti bloccati sui tetti delle auto dopo essere riusciti ad uscire dalle macchine per mettersi in salvo. Sei le stazioni metro chiuse e le stesse auto di servizio dei vigili sono rimaste bloccate perché semisommerse dall'acqua. Su via Palmiro Togliatti, nella zona est della Capitale, si è raggiunto quasi un metro d'acqua. Le sei stazioni della metro di Roma chiuse per i danni del maltempo sono quella dei Colli Albani, Lucio Sestio, Cinecittà, Numidio Quadrato-Battistini, Porta Furba Quadraro sulla linea A e Pietralata sulla metro B. Disagi per tram e bus.",
+        "raggio_m": 500.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.4764239250001,
+          41.944180858
+        ]
+      },
+      "properties": {
+        "data_evento": 1542672000000,
+        "comune": "Roma",
+        "descrizione": "Nubifragio a Roma con strade chiuse ed allagamenti. Oltre che col traffico, i romani si sono trovati alle prese con gli oramai endemici allagamenti che riguardano (oltre alle strade) anche e soprattutto cavalcavia e sottopassi alle prese con il problema acqua alta. Le prime chiusure stradali a partire dalle 15:30 circa a Roma nord. In particolare \"causa allagamento\" è stato chiuso al transito il sottopasso di via Valchetta Cartoni, in direzione via Flaminia-Centro, poi riaperto intorno alle 17:15. Sempre a Labaro, chiusa causa allagamento via Jonas Edward Salk.",
+        "raggio_m": 500.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.414719217,
+          41.906410318
+        ]
+      },
+      "properties": {
+        "data_evento": 1557619200000,
+        "comune": "Roma",
+        "descrizione": "La pioggia che si è abbattuta sulla città nel corso della notte ha determinato problemi e disagi in alcuni quadranti dell'Urbe. Diversi gli interventi legati al maltempo da parte delle pattuglie della Polizia Locale di Roma Capitale e dei vigili del fuoco. Le strade maggiormente interessate sono state via Ardeatina, all'altezza del Divino Amore, dove è stato necessario istituire un senso unico alternato, via del Tintoretto e via di Casal Morena, all'altezza di via Niobe. Problemi anche in via della Valle di Lucina, a San Paolo. Chiuso il sottopasso di via Appia Nuova all'altezza dell'Aereoporto di Ciampino con lo stesso riaperto dagli agenti della Polizia Locale di Roma Capitale intorno alle 10:00. Ed altri disagi in città hanno riguardato gli utenti della metro, con la stazione della linea A Battistini \"chiusa causa maltempo\". Terminato l'interventi dei tecnici la fermata è stata riaperta intorno alle 17:00, dopo circa 3 ore di chiusura.",
+        "raggio_m": 500.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.5739275880001,
+          41.8914267560001
+        ]
+      },
+      "properties": {
+        "data_evento": 1540166400000,
+        "comune": "Roma",
+        "descrizione": "Una violenta bomba d’acqua che si è abbattuta sulla Capitale ha causato allagamenti che si sono registrati immediatamente nella zona nord ed est della città. Ad essere colpito, in particolare, è stato quest’ultimo quadrante con allagamenti di negozi, scantinati e sottopassaggi che si sono verificati in via Tiburtina, via Collatina e Via Prenestina, dove diverse auto sono rimaste bloccate dall’acqua, che in alcuni punti ha raggiunto anche il mezzo metro di altezza. In più di un caso è stato necessario l’intervento dei sommozzatori per tirare fuori gli automobilisti dalle vetture in panne sommerse dal fiume di acqua e ghiaccio che ha invaso le strade capitoline. Nella zona di via Ardeatina e San Giovanni ci sono stati anche casi di alberi e rami caduti, mentre i vigili del fuoco sono stati allertati anche per l’allagamento della Basilica di San Sebastiano, in via Appia Antica.",
+        "raggio_m": 1000.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.477908729,
+          41.8510279480001
+        ]
+      },
+      "properties": {
+        "data_evento": 1532304000000,
+        "comune": "Roma",
+        "descrizione": "Maltempo a Roma con pioggia, allagamenti e traffico in tilt. Poche ore di pioggia e subito tanti disagi a Roma. La Capitale si è svegliata con un temporale estivo. A San Paolo il sottopasso tra viale Giustiniano Imperatore e via Baldelli è finito sott'acqua. Al suo interno due mezzi parcheggiati sono rimasti bloccati. Off limits anche il passaggio pedonale per raggiungere la metro. Problemi anche in via Marmorata, sulla via Ardeatina e viale Ballarin dove un albero caduto a causato la deviazione di due linee autobus. Sul Grande Raccordo Anulare in carreggiata esterna disagi sull'intero anello: code dalla Cassia bis alla Nomentana. Lunghe code anche in interna da Settebagni alla Cassia bis. Traffico anche sul tratto urbano della A24 da Tor Cervara alla Tangenziale est verso il centro.  Veicoli incolonnati sulla Roma-Fiumicino da Ponte Galeria a via Newton verso l'Eur. Stessa situazione sulla Cristoforo Colombo.",
+        "raggio_m": 1000.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.610901353,
+          41.90441178
+        ]
+      },
+      "properties": {
+        "data_evento": 1609632000000,
+        "comune": "Roma",
+        "descrizione": "Intervento della Polizia Locale in via Collatina, all'altezza di via Capranesi zona La Rustica, per l'allagamento della strada a causa del forte afflusso di acqua che fuoriusciva da un canale a margine della carreggiata.",
+        "raggio_m": 500.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.661418,
+          41.914366
+        ]
+      },
+      "properties": {
+        "data_evento": 1390003200000,
+        "comune": "Roma",
+        "descrizione": "Forti allagamenti hanno causato non pochi disagi, con strade chiuse ed alberi caduti a causa del forte vento.",
+        "raggio_m": 500.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.575644201,
+          41.8330868130001
+        ]
+      },
+      "properties": {
+        "data_evento": 1566691200000,
+        "comune": "Roma",
+        "descrizione": "Maltempo a Roma con disagi per gli allagamenti. Particolarmente colpite l'area nord est ed il versante sud della città con il temporale estivo che ha creato disagi anche nei Comuni alle porte della Capitale ed in quelli dei Castelli Romani. Allagamenti sono stati segnalati sulla via Appia, tra l'aeroporto di Ciampino e Frattocchie, in entrambi i sensi di marcia con ripercussioni anche su via dei Laghi e via di Capanne di Marino. Chiuso per allagamento il sottopasso di Ciampino. In viale di Tor di Quinto è segnalata invece la presenza di alberi in carreggiata con difficoltà di circolazione causa un albero di grandi dimensioni che ha ostruito completamente la carreggiata. Rami in strada anche in via Vaglia, al Nuovo Salario, con il vento che ha rovesciato diverse fioriere presenti sui marciapiedi davanti gli esercizi commerciali.",
+        "raggio_m": 500.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.577779132,
+          41.878976709
+        ]
+      },
+      "properties": {
+        "data_evento": 1465257600000,
+        "comune": "Roma",
+        "descrizione": "Un temporale di forte intensità si è abbattuto sulla zona est della Capitale poco dopo le 17.30. A finire investiti dalla forte precipitazione i quartieri del V e VI municipio. Allagamenti si sono registrati nella zona di Finocchio. La fermata Bolognetta della metro C e' stata chiusa causa maltempo. Polizia locale e vigili del fuoco sono intervenuti sul posto, all'altezza del civico 108 di via Bolognetta. In particolare a finire allagato e' stato il sottopasso nei pressi della stazione. Un'auto rimasta bloccata e i passeggeri aiutati ad uscire dal mezzo attraverso il finestrino.",
+        "raggio_m": 500.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.387816344,
+          41.9147782090001
+        ]
+      },
+      "properties": {
+        "data_evento": 1600819200000,
+        "comune": "Roma",
+        "descrizione": "Gravi disagi a causa del maltempo a Roma con allagamenti sulla Cassia, il Grande Raccordo Anulare, via di Boccea e via di Cornelia. Acqua in strada nel quartiere Trieste, a Montesacro, Talenti, Nuovo Salario, Serpentara, Casal del Marmo, Tufello. Fermata la linea A della metropolitana tra Ottaviano e Battistini per un guasto alla rete elettrica, chiuse per allagamento le stazioni di San Giovanni e Manzoni. Disagi anche per la circolazione dei tram: le linee 2 e 19 sono state interrotte a causa dei danni da maltempo nella zona Belle Arti, il tram 3 è stato limitato a Piramide per lo stesso motivo. La linea 8 è stata invece interrotta in zona Induno.",
+        "raggio_m": 1000.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.5289576480001,
+          41.870021013
+        ]
+      },
+      "properties": {
+        "data_evento": 1567382400000,
+        "comune": "Roma",
+        "descrizione": "Allagamenti, metro chiuse, treni rallentati. Un altro nubifragio si è abbattuto sulla Capitale creando vari allagamenti. La città è andata di nuovo in tilt. Dopo pochi minuti di pioggia la metro della linea A Colli Albani si è allagata: i passeggeri ai tornelli avevano l'acqua alle caviglie. Così alle l'Atac è stata costretta a chiuderla. Acqua anche nelle stazioni di San Giovanni e di Subaugusta, dove sono stati chiusi alcuni ingressi. Problemi anche ai treni, a causa delle scariche atmosferiche, tuoni e fulmini: la linea FL4, la Roma-Cassino/Velletri/Frascati/Albano ha subito rallentamenti per guasti tecnici fra Roma Casilina e Ciampino. Paralizzate alcune strade e arterie cittadine: traffico in via Cristoforo Colombo tra via Laurentina e largo delle Terme di Caracalla, in direzione centro storico. Allagato e chiuso anche il sottopasso di via Turano a La Rustica.",
+        "raggio_m": 500.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.4480316940001,
+          41.9073326990001
+        ]
+      },
+      "properties": {
+        "data_evento": 1611446400000,
+        "comune": "Roma",
+        "descrizione": "A Roma disagi per la metro A nella stazione Cipro. Le forti piogge hanno reso impraticabili le scale che consentono di accedere alla banchina. L’acqua si è riversata in tutta la stazione, finendo così per allagarla.",
+        "raggio_m": 200.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.48252,
+          41.8929180000001
+        ]
+      },
+      "properties": {
+        "data_evento": 1402704000000,
+        "comune": "Roma",
+        "descrizione": "Le precipitazioni intense hanno creato disagi alla circolazione, con strade allagate, alberi caduti, bus deviati, metro interrotte, soprattutto sulla metro A e l'acqua che e' riuscita a penetrare anche negli ospedali. In citta', dati inferiori ma comunque significativi sono i seguentii: 68mm a Massimina, 58mm al Casilino, 50mm all’Eur. Notevoli, poi, i 76mm di Maccarese e i 61mm di Fregene, sul litorale, nel comune di Fiumicino. Nelle altre province, da segnalare i 69mm di Viterbo ma soprattutto i 105mm di Valle del Sacco (Frosinone) e gli 89mm di Norma (Latina).",
+        "raggio_m": 1000.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.501233386,
+          41.90144316
+        ]
+      },
+      "properties": {
+        "data_evento": 1575244800000,
+        "comune": "Roma",
+        "descrizione": "Bomba d'acqua su Roma con stazioni metro chiuse e disagi per i cittadini. Per la linea A, a Manzoni e Repubblica, i treni non hanno effettuato fermata per parte della giornata. A Termini l’accesso è stato consentito solo dal lato del centro commerciale. Infiltrazioni ed allagamenti all'interno delle stazioni.",
+        "raggio_m": 200.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.5069796510001,
+          41.945521495
+        ]
+      },
+      "properties": {
+        "data_evento": 1569974400000,
+        "comune": "Roma",
+        "descrizione": "La forte pioggia, preannunciata dal Dipartimento di Protezione Civile con una allerta codice giallo, ha determinato allagamenti e crolli di alberi e rami in carreggiata, con inevitabili disagi alla circolazione e conseguente traffico congestionato. Sono rimaste chiuse moltissime arterie stradali quali il sottopasso di lungotevere in Sassia, il sottopasso dell’autostrada Roma-Fiumicino all’altezza di via Castello della Magliana, via Salaria e via Tiberina. Si sono poi registrati rallentamenti (a partire dalle 12:10) sulla linea AV Roma-Firenze, fra Settebagni e Roma Tiburtina, dove i treni in viaggio hanno registrato ritardi fino a 10 minuti.",
+        "raggio_m": 1000.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.55497,
+          41.85972
+        ]
+      },
+      "properties": {
+        "data_evento": 1435104000000,
+        "comune": "Roma",
+        "descrizione": "Allagamenti nella fermata Lucio Sestio della metropolitana A a causa del maltempo. Dopo un paio d'ore la stazione è stata riaperta.",
+        "raggio_m": 200.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.436598486,
+          41.900754503
+        ]
+      },
+      "properties": {
+        "data_evento": 1564185600000,
+        "comune": "Roma",
+        "descrizione": "Sulla metro A sono rimaste fuori servizio, invase dall'acqua, le stazioni di Repubblica e Cipro, la prima riaperta intorno alle 13, la seconda alle 9 e 30. Chiusure e disagi anche sulla Cassia bis off limits fino alle 12. Interventi in tutta la città „Problemi anche su via di Settebagni per dissesti sul manto stradale eroso dalla forte pioggia. Allagamenti anche nella zona Est, con disagi in particolare su Viale Palmiro Togliatti.",
+        "raggio_m": 500.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.4672744970001,
+          41.9381051820001
+        ]
+      },
+      "properties": {
+        "data_evento": 1623110400000,
+        "comune": "Roma",
+        "descrizione": "Ennesimo nubifragio a Roma con l'allagamento di un asilo con 40 bambini rimasti bloccati all’interno. I vigili del fuoco sono intervenuti nella scuola a Ponte Milvio dove i bimbi e sei adulti erano impossibilitati a uscire a causa dell’acqua all’interno dai locali. Sono stati almeno 50 gli interventi effettuati dai vigili per la messa in sicurezza delle strade e per l’agevolazione della viabilità. Gli interventi hanno riguardato in particolare il quadrante nord della città e soprattutto via Cassia e Ponte Milvio con Corso Francia trasformata in un vero e proprio fiume in piena.",
+        "raggio_m": 1000.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.4761658520001,
+          41.9126098730001
+        ]
+      },
+      "properties": {
+        "data_evento": 1636329600000,
+        "comune": "Roma",
+        "descrizione": " Numerosi allagamenti nei quadranti ovest e nord della Capitale. Tra le principali aree toccate dalla pioggia la zona Flaminio dove, ancora una volta, le scale dell'omonima fermata della metropolitana si sono trasformate in una cascata, di fatto allagando lo scalo.",
+        "raggio_m": 200.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.505983585,
+          41.9667551200001
+        ]
+      },
+      "properties": {
+        "data_evento": 1638403200000,
+        "comune": "Roma",
+        "descrizione": "Pioggia, grandine e raffiche di vento portate dal maltempo a Roma hanno mandato in tilt il traffico in diverse zone della città. In particolare nella zona Roma nord, da Saxa Rubra alla Trionfale, ma anche Montesacro e lungo la Nomentana. Una serie di bombe d'acqua ha allagato strade: sulla Palmiro Togliatti sono dovute intervenire le squadre dell'Anas per alcuni interventi nel quartiere. Caos e fiumi d'acqua - anche per tombini intasati da uno strato di foglie - lungo la Colombo e la Salaria, in uscita dalla capitale. ",
+        "raggio_m": 1000.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.500855561,
+          41.9003950860001
+        ]
+      },
+      "properties": {
+        "data_evento": 1618790400000,
+        "comune": "Roma",
+        "descrizione": "Metro Termini chiusa ancora una volta a causa di allagamenti provocati dal maltempo. Inevitabili disagi per i pendolari con la fermata della linea A temporaneamente sospesa. Situazione simile anche alla fermata Re di Roma, sempre sulla line A.",
+        "raggio_m": 200.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.793997473,
+          41.95694769
+        ]
+      },
+      "properties": {
+        "data_evento": 1562716800000,
+        "comune": "Tivoli",
+        "descrizione": "Maltempo nel quadrante est di Roma e nella sua provincia dove si sono registrati allagamenti e problemi alla circolazione stradale. A determinarli una abbondante pioggia. Tivoli, Ponte Lucano, la via Maremmana, ma anche Colle Mattia e San Vittorino, queste alcune delle zone maggiormente colpite. In particolare è stata Tivoli a fare i conti con l'improvviso acquazzone con allagamenti nella zona di via Empolitana e di largo Saragat (il piazzale del cimitero tiburtino). Rallentamenti alla circolazione anche per i treni della linea FL2 Roma-Tivoli.",
+        "raggio_m": 500.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.7579720000001,
+          41.958088
+        ]
+      },
+      "properties": {
+        "data_evento": 1526774400000,
+        "comune": "Tivoli",
+        "descrizione": "A causa delle forti precipitazioni piovose a Tivoli la strada Maremmana inferiore a Villa Adriana, nei pressi di Ponte Lucano, è stata temporaneamente chiusa per allagamenti. Sono stati segnalati allagamenti in diverse strade della città.",
+        "raggio_m": 500.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.833693323,
+          41.8355385780001
+        ]
+      },
+      "properties": {
+        "data_evento": 1568851200000,
+        "comune": "Zagarolo",
+        "descrizione": "Il maltempo si e' abbattuto sui Monti Prenestini dove in alcune zone si e' assistito a fenomeni piuttosto violenti, con forti raffiche di vento e pioggia abbondante. Allagamenti a Zagarolo, Valle Martella, Valmontone e Genazzano. Segnalata qualche grandinata nelle aree più a sud verso Olevano: si teme per i raccolti.",
+        "raggio_m": 300.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.8955800000001,
+          41.88852
+        ]
+      },
+      "properties": {
+        "data_evento": 1651536000000,
+        "comune": "Poli",
+        "descrizione": "Una piazza allagata con automobilisti e commercianti rimasti bloccati. Il nubifragio si è abbattuto su Poli, nei Monti Prenestini. In poco più di mezz'ora, a causa delle forti ed incessanti piogge che si sono abbattute si sarebbero ostruite le condutture fognarie con l'acqua che in breve tempo ha superato il metro d'altezza. Danni agli esercizi commerciali.",
+        "raggio_m": 500.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.48835,
+          41.88394
+        ]
+      },
+      "properties": {
+        "data_evento": 1650585600000,
+        "comune": "Roma",
+        "descrizione": "Costretta alla chiusura la stazione della metro B di Circo Massimo a causa delle infiltrazioni d’acqua provenienti dall’esterno, in seguito a forti piogge.",
+        "raggio_m": 200.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.5324696243286,
+          41.9723600788441
+        ]
+      },
+      "properties": {
+        "data_evento": 1659783600000,
+        "comune": "Roma",
+        "descrizione": "Un temporale di breve durata ma di forte intensità, accompagnato da vento fortissimo, ha colpito l’area a Nord-Est di Roma.\n10 minuti di pioggia a carattere di rovescio sono bastati ad allagare molte strade del III Municipio.\nIn via Pupella Maggio un albero caduto ha ostruito la carreggiata come in via Carmelo Bene.\nIn via Monte Grimano un albero di grossa portata si è letteralmente sradicato da terra e si è accasciato sul marciapiede chiudendo l’accesso ad un condominio.",
+        "raggio_m": 500.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.484,
+          41.8733300000001
+        ]
+      },
+      "properties": {
+        "data_evento": 1660042800000,
+        "comune": "Roma",
+        "descrizione": "Disagi sul nodo ferroviario di Roma con il traffico ferroviario temporaneamente sospeso in prossimità di Roma Ostiense per le avverse condizioni meteo che hanno interessato la zona e che hanno provocato un inconveniente tecnico alla linea. Lo stop è durato oltre 3 ore. ",
+        "raggio_m": 500.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.4319811503162,
+          41.809732923792
+        ]
+      },
+      "properties": {
+        "data_evento": 1660042800000,
+        "comune": "Roma",
+        "descrizione": "I temporali che hanno colpito la Capitale hanno provocato danni e chiusure di strade anche al Torrino dove per la presenza di alberi sulla carreggiata si sono registrati disagi alla circolazione stradale.",
+        "raggio_m": 500.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.6437119366824,
+          41.9579018597006
+        ]
+      },
+      "properties": {
+        "data_evento": 1660042800000,
+        "comune": "Guidonia Montecelio",
+        "descrizione": "Allagamenti a causa del maltempo nel comune di Guidonia Montecelio, in particolare in via di Marco Simone, allagata all'altezza di via Bellegra. Sempre a Guidonia Montecelio, ma nella frazione del Città dell'Aria è caduto un albero su via Tacito occupando parte della strada.",
+        "raggio_m": 500.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.5676464391242,
+          41.9187688638425
+        ]
+      },
+      "properties": {
+        "data_evento": 1665486000000,
+        "comune": "Roma",
+        "descrizione": "Temporale con conseguenti disagi nel quadrante est della Capitale. Viale di Tor Bella Monaca è stata chiusa fra la via Casilina ed il grande raccordo anulare causa allagamento del sottopasso della metro C. \nAllagamenti sono stati segnalati anche su via Prenestina, altezza viale Togliatti ed a Centocelle. Situazione simile a Ponte Mammolo, con il sottopasso della linea B della metro allagato nella zona del capolinea dei bus.  ",
+        "raggio_m": 500.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.4110400268859,
+          41.8259599953079
+        ]
+      },
+      "properties": {
+        "data_evento": 1670068800000,
+        "comune": "Roma",
+        "descrizione": "Allagamento al canile comunale della Muratella, a Roma. Nella struttura, che ospita circa 410 cani, il maltempo ha lasciato strascichi, richiedendo l'intervento esterno dei soccorritori per riportare la situazione alla normalità e mettere in salvo gli animali presenti. ",
+        "raggio_m": 200.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.4663897288302,
+          41.9113826987165
+        ]
+      },
+      "properties": {
+        "data_evento": 1670068800000,
+        "comune": "Roma",
+        "descrizione": "Problemi per il trasporto pubblico, causati dal maltempo, a Roma. Alla stazione della metro B Piramide la pioggia è filtrata dai soffitti con gli utenti costretti ad entrare alla fermata con gli ombrelli per evitare di bagnarsi. Infiltrazioni che hanno riguardato anche la linea A con la stazione Lepanto chiusa.\nRallentamenti anche per i treni regionali, in particolare sulla linea Roma-Civitavecchia, con il traffico ferroviario è rallentato tra Ponte Galeria e Roma Ostiense per le avverse condizioni meteo e rallentamenti fino a 20 minuti.",
+        "raggio_m": 500.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.509470114605,
+          41.9378385045322
+        ]
+      },
+      "properties": {
+        "data_evento": 1670932800000,
+        "comune": "Roma",
+        "descrizione": "Allagamenti e consueti disagi per la circolazione stradale a causa delle piogge insistenti. Danni dovuti a infiltrazioni di acqua nelle abitazioni e caduta di alberi e rami. Oltre 100 gli interventi effettuati da vigili del fuoco. Chiusa per ore la rampa di accesso alla Tangenziale da Via Salaria in direzione Via del Foro Italico per allagamento.",
+        "raggio_m": 500.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.5242849870232,
+          41.9464949900035
+        ]
+      },
+      "properties": {
+        "data_evento": 1681556400000,
+        "comune": "Roma",
+        "descrizione": "Allagamento in tutta la zona Prati Fiscali, a causa delle forti piogge e del malfunzionamento dell'impianto di sollevamento delle acque. 20 famiglie sono state evacuate. Un automobilista è stato soccorso dai vigili del Fuoco dopo essere rimasto bloccato con la propria autovettura in un sottopasso allagato tra via dei Prati Fiscali e via Salaria.\nDisagi alla metropolitana linea B con la stazione Circo Massimo allagata e inagibile, come quella di Subaugusta sulla linea A.",
+        "raggio_m": 500.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.5410199596272,
+          41.8926699910744
+        ]
+      },
+      "properties": {
+        "data_evento": 1686481200000,
+        "comune": "Roma",
+        "descrizione": "Forti piogge e allagamenti a Roma, in particolare nel quadrante est. Nel giro di poche decine di minuti la situazione si è fatta critica a Largo Preneste, snodo importante della viabilità e del trasporto pubblico. Inondata anche via Tiburtina, dove la corsia centrale era stata chiusa per anni di lavori proprio per evitare che la strada fosse resa inservibile a causa dell'acqua. Problemi anche sui trasporti pubblici su bus, tram e metropolitane linee A e C, con tre stazioni chiuse.",
+        "raggio_m": 500.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.9281817296606,
+          41.8182665024435
+        ]
+      },
+      "properties": {
+        "data_evento": 1686481200000,
+        "comune": "Cave",
+        "descrizione": "Forti nubifragi in tutta l'area dei Monti Prenestini. Allagamenti a Cave nel centro cittadino e a San Cesareo. La Via Prenestina all'altezza di Cave è stata interrotta per una frana.",
+        "raggio_m": 500.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.5179700192613,
+          41.9897850053337
+        ]
+      },
+      "properties": {
+        "data_evento": 1686740400000,
+        "comune": "Roma",
+        "descrizione": "Allagato un centro estivo in zona Settebagni a causa delle forti piogge che hanno colpito Roma. L'allagamento ha bloccato genitori, bambini e personale del summer camp e ha visto l'intervento dei vigili del fuoco. \nCirca 80 le persone messe in sicurezza grazie al gommone in dotazione ai caschi rossi, rimasti bloccati all'interno del circolo di equitazione a causa dalle consistente quantità d'acqua che si è riversata nelle strade a ridosso della struttura. ",
+        "raggio_m": 500.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.4590704136824,
+          41.8648725342044
+        ]
+      },
+      "properties": {
+        "data_evento": 1686654000000,
+        "comune": "Roma",
+        "descrizione": "Allagamenti al nuovo mercato coperto di Vigna Pia, al Portuense, a causa delle piogge intense, con l'acqua che ha riempito i corridoi dell'area mercatale. Particolari disagi sulla via Aurelia, con rallentamenti per allagamenti tra Malagrotta e la via Aurelia Antica. Stessa situazione sull'autostrada Roma-Fiumicino.",
+        "raggio_m": 1000.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.2753299819119,
+          41.734849815848
+        ]
+      },
+      "properties": {
+        "data_evento": 1697454000000,
+        "comune": "Roma",
+        "descrizione": "Un violento temporale si è abbattuto sulla costa romana. Particolarmente colpita Ostia, dove le precipitazioni sono state estremamente intense, superando i 140-150 millimetri all'ora. Strade allagate e Vigili del Fuoco impegnati in numerosi interventi. ",
+        "raggio_m": 500.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.4147846405061,
+          41.9063314795542
+        ]
+      },
+      "properties": {
+        "data_evento": 1698148800000,
+        "comune": "Roma",
+        "descrizione": "Una tempesta si è abbattuta sulla Capitale. Tra i quartieri più colpiti ci sono quelli di Roma nord-ovest, dalla Camilluccia al Trionfale, dove alcune persone intrappolate in auto sono state tratte in salvo dai Vigili del fuoco. Il capolinea della linea A della metro, Battistini, si è allagato causandone la chiusura. ",
+        "raggio_m": 200.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.2800900145807,
+          41.729915014808
+        ]
+      },
+      "properties": {
+        "data_evento": 1701777600000,
+        "comune": "Roma",
+        "descrizione": "Forti precipitazioni sul litorale romano. A Ostia allagate via Claudio, strade laterali e marciapiedi. ",
+        "raggio_m": 500.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.4666439,
+          41.9115216
+        ]
+      },
+      "properties": {
+        "data_evento": 1725361200000,
+        "comune": "Roma",
+        "descrizione": "Le stazioni Lepanto e Manzoni della Metro A di Roma sono state chiuse per allagamento. Un forte temporale ha allagato le strade, provocando traffico e facendo cadere rami. Tra le zone colpite  Monteverde, Portuense, Bravetta, Pisana, Balduina, Massimina, Torrevecchia e Trionfale. Anche una parte del centro storico è stata colpita, da Prati, con diverse richieste di intervento in via Angelo Emo, piazza Prati degli Strozzi, via Giulio Cesare e via Anastasio II, fino a Testaccio. Alberi sono caduti in via di Santa Maria di Galeria, all'altezza di via Boccea e in via di Valle Aurelia, all'altezza della metropolitana.",
+        "raggio_m": 500.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.5299326553239,
+          41.9094546593736
+        ]
+      },
+      "properties": {
+        "data_evento": 1726225200000,
+        "comune": "Roma",
+        "descrizione": "Traffico in tilt sulla circonvallazione Nomentana a causa di un allagamento provocato dalle forti piogge. All'altezza della Stazione Tiburtina si è creato un vero e proprio lago, con criticità anche per recarsi alla autostazione Tibus.\nSempre nel quadrante est, a Villa De Sanctis, via Labico è stata chiusa per la presenza di alberi sulla carreggiata\nnel tratto compreso tra Piazza Sessa Aurunca e Via dei Gordiani. All'Eur, chiusura al traffico per la presenza di alberi sulla carreggiata tra via Sudafrica e via Uganda. Allagamenti su viale Manzoni.",
+        "raggio_m": 1000.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.4516406813384,
+          41.8067641498197
+        ]
+      },
+      "properties": {
+        "data_evento": 1727262000000,
+        "comune": "Roma",
+        "descrizione": "Danni causati dall’intenso maltempo a Roma, in particolare per quanto riguarda la parte sud della Capitale. Diverse strade sono state invase dalle acque e due persone sono rimaste bloccate in auto a causa di un allagamento in via Cristoforo Colombo. Numerosi anche i rami e gli alberi caduti per vento e pioggia.",
+        "raggio_m": 500.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.5579880156196,
+          41.8564575842059
+        ]
+      },
+      "properties": {
+        "data_evento": 1728126000000,
+        "comune": "Roma",
+        "descrizione": "Nella allagamenti e rami spezzati. A Basilica San Paolo si sono allagate alcune strade a causa dei tombini pieni di rifiuti e fango ma non è stato reso necessario l’intervento dei vigili del fuoco ne della protezione civile.\nPiù grave invece l’allagamento su viale Spartaco in zona Tuscolana, dove un incrocio è stato completamente sommerso dall’acqua. Altri allagamenti si sono verificati in via delle Accademie, via Anagnina altezza Ikea in direzione del centro, in via Appia Nuova poco dopo via del Quadraro, su via di Trigoria all’altezza della rotatoria in direzione Ardea.",
+        "raggio_m": 500.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.4487449705828,
+          41.9066318110128
+        ]
+      },
+      "properties": {
+        "data_evento": 1729767600000,
+        "comune": "Roma",
+        "descrizione": "Chiusa per allagamento, causato dalla pioggia intensa, la stazione Cipro della Metro A. Un albero si è abbattuto su un'auto all'uscita della galleria Farnesina, in direzione Stadio Olimpico. La galleria è stata temporaneamente chiusa al traffico.\n\n",
+        "raggio_m": 200.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.816521132819,
+          42.0611005270767
+        ]
+      },
+      "properties": {
+        "data_evento": 1729767600000,
+        "comune": "Civitavecchia",
+        "descrizione": "Sono state messe in salvo due persone bloccate nel proprio veicolo, rimasto arenato al centro della carreggiata allagata di via Aurelia, all’altezza dello svincolo autostradale Civitavecchia sud. La circolazione sulla strada ha riscontrato problemi anche per un allagamento all'altezza del centro commerciale ‘Santa Marinella’. ",
+        "raggio_m": 500.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.6755583570583,
+          41.8644128592579
+        ]
+      },
+      "properties": {
+        "data_evento": 1746529200000,
+        "comune": "Roma",
+        "descrizione": "Un automobilista è rimasto bloccato sotto ad un cavalcavia con l'acqua ad altezza sportelli, in seguito alle piogge che hanno interessato l'area. Si è reso necessario chiudere un tratto di strada, sotto al ponte della linea C della metropolitana.\n",
+        "raggio_m": 500.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.6783785471511,
+          41.80933209845
+        ]
+      },
+      "properties": {
+        "data_evento": 1750158000000,
+        "comune": "Frascati",
+        "descrizione": "Ondata di maltempo che ha provocato danni in particolare a Frascati, dove ha ceduto il controsoffitto del bagno dell'ufficio anagrafe. Non è meglio è andata nel comune di Monte Porzio Catone: qui si è verificato il cedimento del muro di contenimento del comprensorio del Portale delle Armi lato strada provinciale via Frascati.\n",
+        "raggio_m": 500.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.2996012273939,
+          41.7283684759473
+        ]
+      },
+      "properties": {
+        "data_evento": 1752404400000,
+        "comune": "Roma",
+        "descrizione": "Il violento nubifragio che ha colpito Roma ha provocato gravi danni strutturali e disagi in diverse zone della città, in particolare a Ostia, dove il primo piano dell’ospedale Grassi si è allagato, causando difficoltà nei reparti.",
+        "raggio_m": 200.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.1787607029865,
+          42.0994623200622
+        ]
+      },
+      "properties": {
+        "data_evento": 1757502000000,
+        "comune": "Bracciano",
+        "descrizione": "A Bracciano l'ondata di maltempo ha portato alla caduta di alberi, rami pericolanti, allagamenti diffusi, insegne e pali pericolanti. ",
+        "raggio_m": 1000.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.5231169688157,
+          41.9497518413466
+        ]
+      },
+      "properties": {
+        "data_evento": 1757502000000,
+        "comune": "Roma",
+        "descrizione": "Danni nelle zone di Montesacro e Nuovo Salario, con allagamenti e alberi crollati: un grosso pino si è abbattuto in via Ottorino Gentiloni su almeno tre vetture, un paio sono rimaste completamente schiacciate. Una grossa fronda ha danneggiato un'altra auto in via Ubaldino Peruzzi, poco distante da piazza dell'Ateneo Salesiano.",
+        "raggio_m": 500.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.4760993955782,
+          41.7733583201431
+        ]
+      },
+      "properties": {
+        "data_evento": 1767700800000,
+        "comune": "Roma",
+        "descrizione": "Due ragazze, rimaste intrappolate in un appartamento allagato al piano seminterrato, sono state salvate in via di Trigoria, a Roma. Le due giovani, di 21 e 24 anni, non riuscivano a uscire a causa dell'acqua che era arrivata a circa 50 centimetri dal soffitto.",
+        "raggio_m": 500.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.5039991297146,
+          41.7394457041272
+        ]
+      },
+      "properties": {
+        "data_evento": 1769601600000,
+        "comune": "Roma",
+        "descrizione": "A Roma allagamenti diffusi a causa delle intense precipitazioni. In via Laurentina, tra via del Fosso di Radicelli e il civico 1734, la strada è stata chiusa al traffico, con i bus della linea 073, in direzione del capolinea Strampelli, deviati e limitati. Anche i bus della linea 049 sono stati limitati. Chiuso, sempre per allagamento, anche viale Castello della Magliana. \nDanni e disagi anche in zona Balduina dove un grosso pino è caduto da un'area privata in via Ugo de Carolis, all'altezza di via Damiano Chiesa ed è andato a schiantarsi contro un'auto in sosta. Nell'impatto è rimasto parzialmente colpito nella parte posteriore anche un bus della linea 990.\n",
+        "raggio_m": 1000.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.2525900000001,
+          41.7935200000001
+        ]
+      },
+      "properties": {
+        "data_evento": 1773316800000,
+        "comune": "Fiumicino",
+        "descrizione": "Le forti piogge hanno determinato allagamenti all'aeroporto Leonardo Da Vinci; in particolare hanno causato alcune infiltrazioni di acqua nei terminal 1 e 3, senza conseguenze sui voli. \n\n",
+        "raggio_m": 300.0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12.3297199187919,
+          41.7504223682434
+        ]
+      },
+      "properties": {
+        "data_evento": 1773316800000,
+        "comune": "Roma",
+        "descrizione": "La viabilità tra Acilia e Ostia Antica ha subito un durissimo colpo a causa delle intense precipitazioni che hanno messo in ginocchio il sistema di scolo dell’acqua piovana del territorio. Le autorità hanno disposto la chiusura immediata di Via del Fosso di Dragoncello. Chiusa anche via di Saponara, con la deviazione di auto e bus.",
+        "raggio_m": 500.0
+      }
+    }
+  ]
+}

@@ -33,6 +33,7 @@ from download.imperviousness import download_and_process_permeability
 from download.landcover import download_and_process_vegetation
 from download.water_features import download_and_process_water_distance
 from download.sentinel1 import download_sar_flood_mask
+from download.geojson_mask import generate_flood_mask_from_geojson
 from download.precipitation import create_precipitation_channels
 
 # Processing
@@ -182,7 +183,9 @@ def _save_synthetic_static(name: str, data: np.ndarray):
 def generate_event_data(
     event_date: datetime,
     is_flood: bool = True,
-    use_stac: bool = False
+    use_stac: bool = False,
+    use_sar: bool = False,
+    use_geojson: bool = False
 ):
     """
     Genera i dati variabili per un singolo evento.
@@ -196,18 +199,27 @@ def generate_event_data(
     event_dir = EVENTS_DIR / event_id
     event_dir.mkdir(parents=True, exist_ok=True)
 
-    # SAR flood mask, baseline e event (scaricati insieme)
-    try:
-        flood_mask = download_sar_flood_mask(event_date, event_dir, use_stac=use_stac)
-    except ValueError as e:
-        print(f"    ⚠ SAR scartato: {e}")
-        import shutil
-        shutil.rmtree(event_dir, ignore_errors=True)
-        return False
-    except Exception as e:
-        print(f"    ⚠ SAR flood mask: {e}")
+    # SAR flood mask, baseline e event (scaricati insieme) oppure target da geojson
+    if use_geojson:
+        try:
+            flood_mask = generate_flood_mask_from_geojson(event_date, event_dir)
+        except Exception as e:
+            print(f"    ⚠ Errore generazione mask da GeoJSON: {e}")
+            import shutil
+            shutil.rmtree(event_dir, ignore_errors=True)
+            return False
+    else:
+        try:
+            flood_mask = download_sar_flood_mask(event_date, event_dir, use_stac=use_stac)
+        except ValueError as e:
+            print(f"    ⚠ SAR scartato: {e}")
+            import shutil
+            shutil.rmtree(event_dir, ignore_errors=True)
+            return False
+        except Exception as e:
+            print(f"    ⚠ SAR flood mask: {e}")
 
-    # Forza a zero la mask per gli eventi "normali" per evitare falsi positivi da rumore SAR
+    # Forza a zero la mask per gli eventi "normali" per evitare falsi positivi da rumore SAR/GeoJSON vuoto
     if not is_flood:
         flood_mask = np.zeros((GRID_SIZE, GRID_SIZE), dtype=np.float32)
         import rasterio
@@ -275,6 +287,14 @@ def main():
         help="Usa STAC (Planetary Computer) per Sentinel-1 SAR"
     )
     parser.add_argument(
+        "--use-sar", action="store_true",
+        help="Avvia estrazione target (flood mask) tramite Sentinel-1 SAR (Regola dello Specchio)"
+    )
+    parser.add_argument(
+        "--use-geojson", action="store_true",
+        help="Avvia estrazione target (flood mask) da dati storicizzati GeoJSON"
+    )
+    parser.add_argument(
         "--n-events", type=int, default=30,
         help="Numero totale di eventi da generare"
     )
@@ -312,7 +332,13 @@ def main():
 
     for event_date, is_flood in tqdm(all_events, desc="Eventi"):
         try:
-            success = generate_event_data(event_date, is_flood, use_stac=args.use_stac)
+            success = generate_event_data(
+                event_date, 
+                is_flood, 
+                use_stac=args.use_stac,
+                use_sar=args.use_sar,
+                use_geojson=args.use_geojson
+            )
             if success is not False:
                 valid_events.append((event_date, is_flood))
         except Exception as e:

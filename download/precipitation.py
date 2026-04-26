@@ -71,86 +71,72 @@ def fetch_spatial_precipitation(
         
     print(f"[PRECIP] Fetching ({GRID_POINTS}x{GRID_POINTS}) precipitazione [{start_date} -> {end_date}]...")
 
-    try:
-        response = requests.get(url, params=params, timeout=30)
-        response.raise_for_status()
-        data_list = response.json()
-        
-        if not isinstance(data_list, list):
-            data_list = [data_list] # Fallback in caso eccezionale
-
-        matrices = {
-            "precip_today": np.zeros((GRID_POINTS, GRID_POINTS)),
-            "precip_yesterday": np.zeros((GRID_POINTS, GRID_POINTS)),
-            "precip_day_before": np.zeros((GRID_POINTS, GRID_POINTS)),
-            "soil_moisture": np.zeros((GRID_POINTS, GRID_POINTS)),
-        }
-        
-        target_date_today = date.strftime("%Y-%m-%d")
-        target_date_yday = (date - timedelta(days=1)).strftime("%Y-%m-%d")
-        target_date_2day = (date - timedelta(days=2)).strftime("%Y-%m-%d")
-        target_hour = date.strftime("%Y-%m-%dT%H:00")
-
-        # Processa ciascun punto restituito
-        for i in range(GRID_POINTS):
-            for j in range(GRID_POINTS):
-                idx = i * GRID_POINTS + j
-                point_data = data_list[idx] if idx < len(data_list) else {}
-                
-                daily = point_data.get("daily", {})
-                d_times = daily.get("time", [])
-                p_sums = daily.get("precipitation_sum", [])
-                
-                hourly = point_data.get("hourly", {})
-                h_times = hourly.get("time", [])
-                sm_vals = hourly.get("soil_moisture_0_to_7cm", [])
-
-                def get_precip(d_str):
-                    if d_str in d_times:
-                        k = d_times.index(d_str)
-                        v = p_sums[k]
-                        return float(v) if v is not None else 0.0
-                    return 0.0
-
-                matrices["precip_today"][i, j] = get_precip(target_date_today)
-                matrices["precip_yesterday"][i, j] = get_precip(target_date_yday)
-                matrices["precip_day_before"][i, j] = get_precip(target_date_2day)
-                
-                # Soil moisture
-                sm = 0.3
-                if target_hour in h_times:
-                    k = h_times.index(target_hour)
-                    v = sm_vals[k]
-                    if v is not None: sm = float(v)
-                else:
-                    valid_sm = [v for v in sm_vals if v is not None]
-                    if valid_sm: sm = float(np.mean(valid_sm))
-                matrices["soil_moisture"][i, j] = sm
-
-        return matrices
-
-    except Exception as e:
-        print(f"[PRECIP] Errore API: {e}")
-        return _synthetic_matrices(date)
-
-
-def _synthetic_matrices(date: datetime) -> dict:
-    """Genera gradienti sintetici (es. da ovest verso est) come fallback."""
-    rng = np.random.RandomState(int(date.timestamp()) % 2**31)
+    import time
+    retry_delay = 5  # seconds
     
-    mats = {}
-    base_today = float(rng.exponential(4.0))
-    base_yesterday = float(rng.exponential(3.0))
-    
-    # Crea un falso gradiente (+ rumore)
-    yy, xx = np.mgrid[0:GRID_POINTS, 0:GRID_POINTS]
-    gradient = (xx / float(GRID_POINTS)) * rng.uniform(0.5, 1.5)
-    
-    mats["precip_today"] = (np.ones((GRID_POINTS, GRID_POINTS)) * base_today) + gradient * base_today
-    mats["precip_yesterday"] = (np.ones((GRID_POINTS, GRID_POINTS)) * base_yesterday) + gradient * base_yesterday
-    mats["precip_day_before"] = np.ones((GRID_POINTS, GRID_POINTS)) * rng.exponential(2.0)
-    mats["soil_moisture"] = np.clip(np.ones((GRID_POINTS, GRID_POINTS)) * 0.2 + (gradient * 0.1), 0.0, 1.0)
-    return mats
+    while True:
+        try:
+            response = requests.get(url, params=params, timeout=30)
+            response.raise_for_status()
+            data_list = response.json()
+            
+            if not isinstance(data_list, list):
+                data_list = [data_list] # Fallback in caso eccezionale
+
+            matrices = {
+                "precip_today": np.zeros((GRID_POINTS, GRID_POINTS)),
+                "precip_yesterday": np.zeros((GRID_POINTS, GRID_POINTS)),
+                "precip_day_before": np.zeros((GRID_POINTS, GRID_POINTS)),
+                "soil_moisture": np.zeros((GRID_POINTS, GRID_POINTS)),
+            }
+            
+            target_date_today = date.strftime("%Y-%m-%d")
+            target_date_yday = (date - timedelta(days=1)).strftime("%Y-%m-%d")
+            target_date_2day = (date - timedelta(days=2)).strftime("%Y-%m-%d")
+            target_hour = date.strftime("%Y-%m-%dT%H:00")
+
+            # Processa ciascun punto restituito
+            for i in range(GRID_POINTS):
+                for j in range(GRID_POINTS):
+                    idx = i * GRID_POINTS + j
+                    point_data = data_list[idx] if idx < len(data_list) else {}
+                    
+                    daily = point_data.get("daily", {})
+                    d_times = daily.get("time", [])
+                    p_sums = daily.get("precipitation_sum", [])
+                    
+                    hourly = point_data.get("hourly", {})
+                    h_times = hourly.get("time", [])
+                    sm_vals = hourly.get("soil_moisture_0_to_7cm", [])
+
+                    def get_precip(d_str):
+                        if d_str in d_times:
+                            k = d_times.index(d_str)
+                            v = p_sums[k]
+                            return float(v) if v is not None else 0.0
+                        return 0.0
+
+                    matrices["precip_today"][i, j] = get_precip(target_date_today)
+                    matrices["precip_yesterday"][i, j] = get_precip(target_date_yday)
+                    matrices["precip_day_before"][i, j] = get_precip(target_date_2day)
+                    
+                    # Soil moisture
+                    sm = 0.3
+                    if target_hour in h_times:
+                        k = h_times.index(target_hour)
+                        v = sm_vals[k]
+                        if v is not None: sm = float(v)
+                    else:
+                        valid_sm = [v for v in sm_vals if v is not None]
+                        if valid_sm: sm = float(np.mean(valid_sm))
+                    matrices["soil_moisture"][i, j] = sm
+
+            return matrices
+
+        except Exception as e:
+            print(f"[PRECIP] Errore API: {e}. Riprovo tra {retry_delay} secondi...")
+            time.sleep(retry_delay)
+            retry_delay = min(retry_delay * 2, 60)  # Exponential backoff up to 60s
 
 
 def create_precipitation_channels(
