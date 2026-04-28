@@ -5,9 +5,14 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
+    "dem-stitcher>=2.5.13",
     "django>=6.0.4",
-    "folium>=0.20.0",
+    "keras>=3.14.0",
+    "matplotlib>=3.10.9",
     "networkx>=3.6.1",
     "osmnx>=2.1.0",
+    "rasterio>=1.5.0",
     "scikit-learn>=1.8.0",
+    "torch>=2.11.0",
+    "uvicorn>=0.46.0",
 ]

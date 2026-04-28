@@ -6,360 +6,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <title>ENKI · Flood forecasting system</title>
+  <link rel="icon" type="image/webp" href="{% static 'enki_dashboard/favicon.webp' %}">
 
   <link rel="stylesheet"
         href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-        crossorigin=""/>
+        crossorigin="">
   <link rel="stylesheet"
-        href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"/>
-
-  <style>
-    :root {
-      --primary: #1338BE;
-      --bg: #f3f4f6;
-      --surface: #ffffff;
-      --border: #e5e7eb;
-      --text: #111827;
-      --text-muted: #6b7280;
-      --text-faint: #9ca3af;
-      --success: #10b981;
-      --warning: #d97706;
-      --danger:  #dc2626;
-      --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
-      --shadow:    0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
-    }
-
-    * { box-sizing: border-box; }
-    html, body {
-      margin: 0; padding: 0; height: 100%;
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      font-size: 14px;
-      line-height: 1.5;
-    }
-
-    .dashboard { display: flex; flex-direction: column; height: 100vh; }
-
-    /* TOPBAR */
-    .topbar {
-      display: flex; align-items: center; gap: 16px;
-      padding: 0 24px; height: 60px;
-      background: var(--primary); color: #fff;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.15);
-      flex-shrink: 0;
-    }
-    .brand { display: flex; align-items: center; gap: 12px; }
-    .brand-logo {
-      width: 34px; height: 34px;
-      border-radius: 6px;
-      overflow: hidden;
-      display: grid; place-items: center;
-      background: #fff;
-    }
-    .brand-logo img {
-      width: 100%; height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-    .brand-text { line-height: 1.2; }
-    .brand-name { font-weight: 700; font-size: 16px; letter-spacing: 0.5px; }
-    .brand-sub  { font-size: 11px; opacity: 0.85; }
-
-    .topbar-spacer { flex: 1; }
-
-    .status-pill {
-      display: inline-flex; align-items: center; gap: 8px;
-      padding: 6px 12px;
-      background: rgba(255,255,255,0.12);
-      border-radius: 999px;
-      font-size: 12px;
-      font-variant-numeric: tabular-nums;
-    }
-    .status-dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      background: var(--success);
-      animation: pulse 2s infinite;
-    }
-    @keyframes pulse {
-      0%   { box-shadow: 0 0 0 0 rgba(16,185,129,0.7); }
-      70%  { box-shadow: 0 0 0 8px rgba(16,185,129,0); }
-      100% { box-shadow: 0 0 0 0 rgba(16,185,129,0); }
-    }
-
-    /* MAIN */
-    .main {
-      flex: 1; display: flex; flex-direction: column;
-      gap: 16px; padding: 16px 24px;
-      overflow: hidden; min-height: 0;
-    }
-
-    /* KPI */
-    .kpi-row {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 16px;
-      flex-shrink: 0;
-    }
-    .kpi {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 14px 16px;
-      box-shadow: var(--shadow-sm);
-    }
-    .kpi-label {
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.6px;
-      color: var(--text-muted);
-      font-weight: 600;
-      margin-bottom: 4px;
-    }
-    .kpi-value {
-      font-size: 22px; font-weight: 700;
-      color: var(--text);
-      font-variant-numeric: tabular-nums;
-      line-height: 1.2;
-    }
-    .kpi-hint { font-size: 11px; color: var(--text-faint); margin-top: 2px; }
-    .kpi-value.danger  { color: var(--danger); }
-    .kpi-value.warning { color: var(--warning); }
-
-    /* CARD */
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      box-shadow: var(--shadow);
-      display: flex; flex-direction: column;
-      overflow: hidden; flex: 1; min-height: 0;
-    }
-    .card-header {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 12px 16px;
-      border-bottom: 1px solid var(--border);
-    }
-    .card-title { font-weight: 600; font-size: 14px; }
-    .card-meta  {
-      font-size: 12px;
-      color: var(--text-muted);
-      display: flex; align-items: center; gap: 12px;
-    }
-    .card-body { flex: 1; position: relative; min-height: 0; }
-    #map { position: absolute; inset: 0; }
-
-    .btn-reset {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      padding: 4px 10px;
-      font: inherit; font-size: 12px;
-      color: var(--text-muted);
-      cursor: pointer;
-    }
-    .btn-reset:hover { color: var(--text); border-color: var(--text-muted); }
-
-    /* Flatpickr overrides */
-    .flatpickr-input {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      padding: 4px 10px;
-      font: inherit; font-size: 12px;
-      color: var(--text);
-      cursor: pointer;
-      width: 110px;
-    }
-    .flatpickr-day.flood-day {
-      background: #fee2e2;
-      color: #dc2626;
-      font-weight: 600;
-    }
-    .flatpickr-day.flood-day:hover,
-    .flatpickr-day.flood-day.selected {
-      background: #dc2626;
-      color: #fff;
-    }
-
-    /* LEGEND */
-    .legend {
-      position: absolute;
-      bottom: 16px; left: 16px;
-      z-index: 500;
-      background: rgba(255,255,255,0.95);
-      backdrop-filter: blur(4px);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 10px 12px;
-      box-shadow: var(--shadow);
-      min-width: 180px;
-    }
-    .legend-title {
-      font-weight: 600; font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: var(--text-muted);
-      margin-bottom: 6px;
-    }
-    .legend-bar {
-      height: 8px; border-radius: 2px;
-      background: linear-gradient(to right,
-        rgb(255,255,191)   0%,
-        rgb(253,174,97)   25%,
-        rgb(215,48,39)    62%,
-        rgb(127,0,0)     100%);
-      margin-bottom: 4px;
-    }
-    .legend-scale {
-      display: flex; justify-content: space-between;
-      color: var(--text-faint);
-      font-size: 10px;
-      font-variant-numeric: tabular-nums;
-    }
-
-    /* ── AI PREDICTION DRAWER ── */
-    .pred-drawer {
-      position: fixed;
-      bottom: 0; left: 0; right: 0;
-      height: 460px;
-      background: var(--surface);
-      border-top: 2px solid var(--primary);
-      box-shadow: 0 -4px 16px rgba(0,0,0,0.12);
-      z-index: 1000;
-      display: flex; flex-direction: column;
-      transform: translateY(100%);
-      transition: transform 0.3s ease;
-    }
-    .pred-drawer.open { transform: translateY(0); }
-
-    .pred-drawer-header {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 10px 16px;
-      border-bottom: 1px solid var(--border);
-      flex-shrink: 0;
-      background: var(--surface);
-    }
-    .pred-drawer-header .card-title { color: var(--primary); }
-
-    .pred-drawer-body {
-      flex: 1; overflow-y: auto;
-      padding: 16px;
-      display: flex; flex-direction: column; gap: 12px;
-    }
-
-    .pred-section-title {
-      font-size: 11px; font-weight: 600;
-      text-transform: uppercase; letter-spacing: 0.6px;
-      color: var(--text-muted); margin-bottom: 6px;
-    }
-
-    .pred-channels-grid {
-      display: grid;
-      grid-template-columns: repeat(8, 1fr);
-      gap: 8px;
-    }
-    .pred-channel-item {
-      display: flex; flex-direction: column; align-items: center; gap: 4px;
-    }
-    .pred-channel-item img {
-      width: 100%; border-radius: 4px;
-      border: 1px solid var(--border);
-    }
-    .pred-channel-label {
-      font-size: 9px; color: var(--text-muted);
-      text-align: center; line-height: 1.2;
-    }
-
-    .pred-output-grid {
-      display: grid; grid-template-columns: 1fr 1fr;
-      gap: 16px; max-width: 700px;
-    }
-    .pred-output-item {
-      display: flex; flex-direction: column; align-items: flex-start; gap: 4px;
-    }
-    .pred-output-item img {
-      width: 100%; border-radius: 4px;
-      border: 1px solid var(--border);
-    }
-
-    .pred-stats-row {
-      display: flex; gap: 20px; flex-wrap: wrap;
-    }
-    .pred-stat {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 8px 14px;
-    }
-    .pred-stat-label {
-      font-size: 10px; text-transform: uppercase;
-      letter-spacing: 0.5px; color: var(--text-muted); font-weight: 600;
-    }
-    .pred-stat-value {
-      font-size: 18px; font-weight: 700;
-      color: var(--text); font-variant-numeric: tabular-nums;
-    }
-
-    .pred-loading {
-      text-align: center; padding: 60px 20px;
-      color: var(--text-muted); font-size: 13px;
-    }
-    .spinner {
-      display: inline-block; width: 28px; height: 28px;
-      border: 3px solid var(--border);
-      border-top-color: var(--primary);
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      vertical-align: middle; margin-right: 8px;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    .btn-ai {
-      display: inline-flex; align-items: center; gap: 6px;
-      padding: 6px 14px;
-      background: rgba(255,255,255,0.18);
-      border: 1px solid rgba(255,255,255,0.35);
-      border-radius: 6px;
-      color: #fff; font: inherit; font-size: 12px; font-weight: 600;
-      cursor: pointer; letter-spacing: 0.3px;
-    }
-    .btn-ai:hover { background: rgba(255,255,255,0.28); }
-
-    .btn-primary {
-      padding: 5px 12px;
-      background: var(--primary); color: #fff;
-      border: none; border-radius: 4px;
-      font: inherit; font-size: 12px; font-weight: 600;
-      cursor: pointer;
-    }
-    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-    .btn-primary:hover:not(:disabled) { background: #0f2d9e; }
-
-    /* ROUTE HINT BANNER */
-    .route-hint {
-      position: absolute;
-      top: 16px; left: 50%; transform: translateX(-50%);
-      z-index: 500;
-      background: rgba(17,24,39,0.85);
-      color: #fff;
-      padding: 6px 14px;
-      border-radius: 999px;
-      font-size: 12px;
-      box-shadow: var(--shadow);
-      pointer-events: none;
-    }
-  </style>
+        href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <link rel="stylesheet" href="{% static 'enki_dashboard/dashboard.css' %}">
 </head>
 <body>
   <div class="dashboard">
-
     <header class="topbar">
       <div class="brand">
         <div class="brand-logo">
-          <img src="{% static 'enki_dashboard/enki.jpeg' %}" alt="ENKI">
+          <img src="{% static 'enki_dashboard/favicon.webp' %}" alt="ENKI">
         </div>
         <div class="brand-text">
           <div class="brand-name">ENKI</div>
@@ -380,11 +42,10 @@
     </header>
 
     <main class="main">
-
       <div class="kpi-row">
         <div class="kpi">
           <div class="kpi-label">Monitored area</div>
-          <div class="kpi-value" style="font-size: 16px;">Rome · GRA</div>
+          <div class="kpi-value kpi-value-location">Rome · GRA</div>
           <div class="kpi-hint">~{{ coverage_km2 }} km² coverage</div>
         </div>
         <div class="kpi">
@@ -408,9 +69,9 @@
         <div class="card-header">
           <div class="card-title">Risk map</div>
           <div class="card-meta">
-            <label style="display: inline-flex; align-items: center; gap: 6px;">
+            <label class="field-inline">
               Date:
-              <input type="text" id="periodPicker" placeholder="All time" readonly/>
+              <input type="text" id="periodPicker" placeholder="All time" readonly>
             </label>
             <button class="btn-reset" id="btnClearDate">Clear date</button>
             <button class="btn-reset" id="btnReset">Clear route</button>
@@ -418,7 +79,7 @@
         </div>
         <div class="card-body">
           <div id="map"></div>
-          <div class="route-hint" id="routeHint">Click: route · Shift+Click: spawn flood</div>
+          <div class="route-hint" id="routeHint">Click two points to calculate a route</div>
           <div class="legend">
             <div class="legend-title">Forecasted intensity</div>
             <div class="legend-bar"></div>
@@ -428,20 +89,16 @@
           </div>
         </div>
       </section>
-
     </main>
   </div>
 
-  <!-- ResUNet Prediction Drawer -->
   <div class="pred-drawer" id="predDrawer">
     <div class="pred-drawer-header">
       <div class="card-title">ResUNet Flood Prediction</div>
-      <div style="display:flex; gap:8px; align-items:center;">
-        <label style="display:inline-flex; align-items:center; gap:6px; font-size:12px; color:var(--text-muted);">
+      <div class="pred-actions">
+        <label class="field-inline pred-date-field">
           Date:
-          <input type="date" id="predDateInput"
-                 style="border:1px solid var(--border); border-radius:4px; padding:4px 8px; font:inherit; font-size:12px; color:var(--text); cursor:pointer;"
-          />
+          <input type="text" id="predDateInput" class="pred-date-input" readonly>
         </label>
         <button id="btnRunPred" class="btn-primary">Run Prediction</button>
         <button id="btnToggleModelLayer" class="btn-reset" disabled>Toggle on map</button>
@@ -452,26 +109,25 @@
       <div class="pred-loading" id="predIdle">
         Select a date and click <strong>Run Prediction</strong>. Default is today — you can choose any past date to run the model on historical data.
       </div>
-      <div class="pred-loading" id="predLoading" style="display:none;">
+      <div class="pred-loading" id="predLoading" hidden>
         <span class="spinner"></span> Running ResUNet inference&hellip; (first load takes a few seconds)
       </div>
-      <div id="predContent" style="display:none;">
-        <!-- Input channels -->
+      <div id="predContent" hidden>
         <div class="pred-section-title">Model Input &mdash; 8 channels</div>
         <div class="pred-channels-grid" id="predChannelGrid"></div>
-        <!-- Stats -->
-        <div class="pred-section-title" style="margin-top:14px;">Prediction Stats</div>
+
+        <div class="pred-section-title pred-section-spaced">Prediction Stats</div>
         <div class="pred-stats-row" id="predStatsRow"></div>
-        <!-- Outputs -->
-        <div class="pred-section-title" style="margin-top:14px;">Model Output</div>
+
+        <div class="pred-section-title pred-section-spaced">Model Output</div>
         <div class="pred-output-grid">
           <div class="pred-output-item">
-            <div class="pred-section-title" style="margin-bottom:0;">Raw output (sigmoid)</div>
-            <img id="predRawImg" alt="raw output"/>
+            <div class="pred-section-title pred-output-title">Raw output (sigmoid)</div>
+            <img id="predRawImg" alt="raw output">
           </div>
           <div class="pred-output-item">
-            <div class="pred-section-title" style="margin-bottom:0;">Thresholded (&ge; 0.4)</div>
-            <img id="predThreshImg" alt="thresholded output"/>
+            <div class="pred-section-title pred-output-title">Thresholded (&ge; 0.4)</div>
+            <img id="predThreshImg" alt="thresholded output">
           </div>
         </div>
       </div>
@@ -482,467 +138,7 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
           integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
           crossorigin=""></script>
-
-  <script>
-    // ===== Map & tile layer =====
-    const map = L.map('map', { attributionControl: false })
-      .setView([{{ center_lat }}, {{ center_lon }}], {{ zoom }});
-
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-    }).addTo(map);
-
-    // ===== Heatmap color ramp =====
-    const COLOR_STOPS = [
-      [0.0, 255, 255, 191],
-      [0.2, 253, 174,  97],
-      [0.5, 215,  48,  39],
-      [0.8, 127,   0,   0],
-    ];
-    const lerp = (a, b, t) => a + (b - a) * t;
-
-    function colorByIntensity(i) {
-      if (i < 0.05) return [0, 0, 0, 0];
-      let lo = COLOR_STOPS[0], hi = COLOR_STOPS[COLOR_STOPS.length - 1];
-      for (let k = 0; k < COLOR_STOPS.length - 1; k++) {
-        if (i >= COLOR_STOPS[k][0] && i <= COLOR_STOPS[k + 1][0]) {
-          lo = COLOR_STOPS[k]; hi = COLOR_STOPS[k + 1]; break;
-        }
-      }
-      if (i > hi[0]) lo = hi;
-      const span = hi[0] - lo[0];
-      const t = span > 0 ? (i - lo[0]) / span : 0;
-      return [
-        Math.round(lerp(lo[1], hi[1], t)),
-        Math.round(lerp(lo[2], hi[2], t)),
-        Math.round(lerp(lo[3], hi[3], t)),
-        Math.round(lerp(80, 230, Math.min(i, 1))),
-      ];
-    }
-
-    // ===== Stats =====
-    function computeStats(data, size) {
-      let peak = 0, riskCells = 0;
-      for (let y = 0; y < size; y++) {
-        const row = data[y];
-        for (let x = 0; x < size; x++) {
-          const v = row[x];
-          if (v > peak) peak = v;
-          if (v >= 0.2) riskCells++;
-        }
-      }
-      return {
-        peak,
-        riskCells,
-        total: size * size,
-        alerts: countClusters(data, size, 0.5),
-      };
-    }
-
-    function countClusters(data, size, threshold) {
-      const seen = new Uint8Array(size * size);
-      let clusters = 0;
-      const stack = [];
-      for (let y = 0; y < size; y++) {
-        for (let x = 0; x < size; x++) {
-          if (seen[y * size + x] || data[y][x] < threshold) continue;
-          clusters++;
-          stack.push([y, x]);
-          while (stack.length) {
-            const [cy, cx] = stack.pop();
-            const ci = cy * size + cx;
-            if (seen[ci] || data[cy][cx] < threshold) continue;
-            seen[ci] = 1;
-            if (cy > 0)        stack.push([cy - 1, cx]);
-            if (cy < size - 1) stack.push([cy + 1, cx]);
-            if (cx > 0)        stack.push([cy, cx - 1]);
-            if (cx < size - 1) stack.push([cy, cx + 1]);
-          }
-        }
-      }
-      return clusters;
-    }
-
-    // ===== Formatting (Italian numerals) =====
-    const fmtInt = n => new Intl.NumberFormat('it-IT').format(n);
-    const fmtPct = n => (n * 100).toFixed(1).replace('.', ',') + ' %';
-    const fmtNum = n => n.toFixed(2).replace('.', ',');
-
-    // ===== Severity =====
-    function severityFromPeak(peak) {
-      if (peak >= 0.8) return { label: 'Red',    cls: 'danger',  hint: 'critical — immediate response' };
-      if (peak >= 0.5) return { label: 'Orange', cls: 'warning', hint: 'high — preparedness needed' };
-      if (peak >= 0.2) return { label: 'Yellow', cls: '',        hint: 'moderate — keep monitoring' };
-      return             { label: 'Green',  cls: '',        hint: 'low — normal conditions' };
-    }
-
-    function alertsHintText(n) {
-      if (n === 0) return 'no critical zones detected';
-      if (n === 1) return '1 zone requires attention';
-      return n + ' zones require attention';
-    }
-
-    // ===== Period filter (giornaliero) =====
-    let currentPeriod = { year: null, month: null, day: null };
-    let picker = null;
-
-    function appendPeriodParams(params) {
-      if (currentPeriod.year)  params.set('year',  currentPeriod.year);
-      if (currentPeriod.month) params.set('month', currentPeriod.month);
-      if (currentPeriod.day)   params.set('day',   currentPeriod.day);
-    }
-
-    async function loadPeriods() {
-      const res = await fetch("{% url 'enki_dashboard:historical_periods' %}");
-      const { days } = await res.json();
-
-      const floodSet = new Set(
-        days.map(({ year, month, day }) =>
-          `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`)
-      );
-
-      picker = flatpickr('#periodPicker', {
-        dateFormat: 'Y-m-d',
-        allowInput: false,
-        onDayCreate(dObj, dStr, fp, dayElem) {
-          const d = dayElem.dateObj;
-          const iso = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-          if (floodSet.has(iso)) dayElem.classList.add('flood-day');
-        },
-        onChange(selectedDates) {
-          if (!selectedDates.length) {
-            currentPeriod = { year: null, month: null, day: null };
-          } else {
-            const d = selectedDates[0];
-            currentPeriod = { year: d.getFullYear(), month: d.getMonth() + 1, day: d.getDate() };
-          }
-          floodToken++;
-          refresh();
-        },
-      });
-    }
-
-    document.getElementById('btnClearDate').addEventListener('click', () => {
-      picker && picker.clear();
-      currentPeriod = { year: null, month: null, day: null };
-      floodToken++;
-      refresh();
-    });
-
-    // ===== Routing state =====
-    let pointA = null, pointB = null;
-    let markerA = null, markerB = null;
-    let pathLayer = null;
-    let routeToken = 0;
-    let floodToken = 0;
-
-    function setHint(text) {
-      document.getElementById('routeHint').textContent = text;
-    }
-
-    async function computeRoute() {
-      if (!pointA || !pointB) return;
-      const myToken = routeToken;
-      const params = new URLSearchParams({
-        a_lat: pointA.lat, a_lon: pointA.lng,
-        b_lat: pointB.lat, b_lon: pointB.lng,
-      });
-      appendPeriodParams(params);
-
-      try {
-        const res = await fetch("{% url 'enki_dashboard:route' %}?" + params);
-        if (myToken !== routeToken) return;
-
-        if (!res.ok) {
-          setHint(res.status === 404 ? 'No path available' : 'Routing error');
-          return;
-        }
-        const { path } = await res.json();
-        if (myToken !== routeToken) return;
-
-        if (pathLayer) map.removeLayer(pathLayer);
-        pathLayer = L.polyline(path, {
-          color: '#06b6d4',
-          weight: 5,
-          opacity: 0.9,
-        }).addTo(map);
-        setHint('Route auto-updates with flood changes');
-      } catch (err) {
-        console.error('route failed:', err);
-        setHint('Routing error');
-      }
-    }
-
-    function resetRoute() {
-      routeToken++;
-      if (markerA)   { map.removeLayer(markerA);   markerA = null; }
-      if (markerB)   { map.removeLayer(markerB);   markerB = null; }
-      if (pathLayer) { map.removeLayer(pathLayer); pathLayer = null; }
-      pointA = null;
-      pointB = null;
-      setHint('Click: route · Shift+Click: spawn flood');
-    }
-
-    async function spawnFloodAt(latlng) {
-      try {
-        const res = await fetch("{% url 'enki_dashboard:spawn_flood' %}", {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ lat: latlng.lat, lon: latlng.lng }),
-        });
-        if (!res.ok) {
-          const err = await res.json().catch(() => ({}));
-          setHint('Spawn failed: ' + (err.error || res.status));
-          return;
-        }
-        refresh();
-      } catch (err) {
-        console.error('spawn failed:', err);
-        setHint('Spawn error');
-      }
-    }
-
-    map.on('click', (e) => {
-      if (e.originalEvent.shiftKey) {
-        spawnFloodAt(e.latlng);
-        return;
-      }
-      if (!pointA) {
-        pointA = e.latlng;
-        markerA = L.marker(e.latlng).addTo(map).bindTooltip('A', { permanent: true, direction: 'top' });
-        setHint('Click destination point B');
-      } else if (!pointB) {
-        pointB = e.latlng;
-        markerB = L.marker(e.latlng).addTo(map).bindTooltip('B', { permanent: true, direction: 'top' });
-        computeRoute();
-      } else {
-        resetRoute();
-        pointA = e.latlng;
-        markerA = L.marker(e.latlng).addTo(map).bindTooltip('A', { permanent: true, direction: 'top' });
-        setHint('Click destination point B');
-      }
-    });
-
-    document.getElementById('btnReset').addEventListener('click', resetRoute);
-
-    // ===== Flood overlay loop =====
-    let floodLayer = null;
-
-    async function loadFloods() {
-      const myToken = floodToken;
-    
-      const params = new URLSearchParams();
-      appendPeriodParams(params);
-      const url = "{% url 'enki_dashboard:flood_data' %}" +
-                  (params.toString() ? '?' + params : '');
-      const res = await fetch(url);
-      if (myToken !== floodToken) return;   // periodo cambiato nel frattempo
-    
-      const { bounds, size, data } = await res.json();
-      if (myToken !== floodToken) return;   // doppio check
-    
-      const canvas = document.createElement('canvas');
-      canvas.width = size; canvas.height = size;
-      const ctx = canvas.getContext('2d');
-      const img = ctx.createImageData(size, size);
-
-      for (let y = 0; y < size; y++) {
-        for (let x = 0; x < size; x++) {
-          const [r, g, b, a] = colorByIntensity(data[y][x]);
-          const idx = (y * size + x) * 4;
-          img.data[idx]     = r;
-          img.data[idx + 1] = g;
-          img.data[idx + 2] = b;
-          img.data[idx + 3] = a;
-        }
-      }
-      ctx.putImageData(img, 0, 0);
-
-      if (floodLayer) map.removeLayer(floodLayer);
-      floodLayer = L.imageOverlay(
-        canvas.toDataURL(),
-        [[bounds.south, bounds.west], [bounds.north, bounds.east]],
-        { opacity: 0.7, interactive: false }
-      ).addTo(map);
-
-      // KPIs
-      const s = computeStats(data, size);
-
-      const affectedKm2 = s.riskCells * Math.pow({{ pixel_m }} / 1000, 2);
-      document.getElementById('kpiRisk').textContent = fmtNum(affectedKm2) + ' km²';
-      document.getElementById('kpiRiskHint').textContent =
-        fmtPct(s.riskCells / s.total) + ' of monitored area';
-
-      const sev = severityFromPeak(s.peak);
-      const peakEl = document.getElementById('kpiPeak');
-      peakEl.textContent = sev.label;
-      peakEl.className = 'kpi-value ' + sev.cls;
-      document.getElementById('kpiPeakHint').textContent = sev.hint;
-
-      const alertsEl = document.getElementById('kpiAlerts');
-      alertsEl.textContent = fmtInt(s.alerts);
-      alertsEl.className = 'kpi-value ' +
-        (s.alerts >= 3 ? 'danger' : s.alerts >= 1 ? 'warning' : '');
-      document.getElementById('kpiAlertsHint').textContent = alertsHintText(s.alerts);
-
-      const now = new Date();
-      document.getElementById('lastUpdate').textContent =
-        String(now.getHours()).padStart(2, '0') + ':' +
-        String(now.getMinutes()).padStart(2, '0') + ':' +
-        String(now.getSeconds()).padStart(2, '0');
-
-      if (pointA && pointB) computeRoute();
-    }
-
-    function refresh() {
-      loadFloods().catch(err => console.error('flood load failed:', err));
-    }
-
-    const REFRESH_MS = {{ refresh_ms }};
-    loadPeriods();
-    refresh();
-    setInterval(refresh, REFRESH_MS);
-
-    // ===== ResUNet prediction drawer =====
-    let modelLayer     = null;
-    let modelHeatmap   = null;
-    let predRunning    = false;
-
-    const predDrawer    = document.getElementById('predDrawer');
-    const predIdle      = document.getElementById('predIdle');
-    const predLoading   = document.getElementById('predLoading');
-    const predContent   = document.getElementById('predContent');
-    const btnRunPred    = document.getElementById('btnRunPred');
-    const btnToggle     = document.getElementById('btnToggleModelLayer');
-    const btnClosePred  = document.getElementById('btnClosePred');
-    const btnOpenPred   = document.getElementById('btnOpenPred');
-    const predDateInput = document.getElementById('predDateInput');
-
-    // Init date picker: default = today, max = today
-    const todayISO = new Date().toISOString().slice(0, 10);
-    predDateInput.value = todayISO;
-    predDateInput.max   = todayISO;
-
-    btnOpenPred.addEventListener('click', () => predDrawer.classList.add('open'));
-    btnClosePred.addEventListener('click', () => predDrawer.classList.remove('open'));
-
-    function showPredState(state) {
-      predIdle.style.display    = state === 'idle'    ? '' : 'none';
-      predLoading.style.display = state === 'loading' ? '' : 'none';
-      predContent.style.display = state === 'done'    ? '' : 'none';
-    }
-
-    btnRunPred.addEventListener('click', async () => {
-      if (predRunning) return;
-      predRunning = true;
-      btnRunPred.disabled = true;
-      showPredState('loading');
-
-      try {
-        const selectedDate = predDateInput.value;
-        const url = "{% url 'enki_dashboard:model_prediction' %}" +
-                    (selectedDate ? '?date=' + selectedDate : '');
-        const res  = await fetch(url);
-        const data = await res.json();
-        if (!res.ok) {
-          throw new Error(data.error || 'Server error ' + res.status);
-        }
-
-        // Update date picker to reflect what was actually used
-        predDateInput.value = data.date;
-
-        // Input channels grid
-        const grid = document.getElementById('predChannelGrid');
-        grid.innerHTML = '';
-        for (const ch of data.channels) {
-          const div = document.createElement('div');
-          div.className = 'pred-channel-item';
-          div.innerHTML = `<img src="data:image/png;base64,${ch.img}" />
-                           <div class="pred-channel-label">${ch.name}</div>`;
-          grid.appendChild(div);
-        }
-
-        // Stats
-        const statsRow = document.getElementById('predStatsRow');
-        const s = data.stats;
-        statsRow.innerHTML = `
-          <div class="pred-stat">
-            <div class="pred-stat-label">Max probability</div>
-            <div class="pred-stat-value">${(s.max_prob * 100).toFixed(1)} %</div>
-          </div>
-          <div class="pred-stat">
-            <div class="pred-stat-label">Flooded area</div>
-            <div class="pred-stat-value">${s.flooded_pct.toFixed(1)} %</div>
-          </div>
-          <div class="pred-stat">
-            <div class="pred-stat-label">Mean probability</div>
-            <div class="pred-stat-value">${(s.mean_prob * 100).toFixed(2)} %</div>
-          </div>
-          <div class="pred-stat">
-            <div class="pred-stat-label">Threshold</div>
-            <div class="pred-stat-value">${data.threshold}</div>
-          </div>`;
-
-        // Output images
-        document.getElementById('predRawImg').src    = 'data:image/png;base64,' + data.raw_img;
-        document.getElementById('predThreshImg').src = 'data:image/png;base64,' + data.thresh_img;
-
-        // Store heatmap for map overlay
-        modelHeatmap = data.heatmap;
-        btnToggle.disabled = false;
-
-        showPredState('done');
-      } catch (err) {
-        console.error('prediction failed:', err);
-        predIdle.style.display = '';
-        predIdle.innerHTML = '<span style="color:var(--danger)">Prediction failed — check server logs.</span>';
-        predLoading.style.display = 'none';
-      } finally {
-        predRunning = false;
-        btnRunPred.disabled = false;
-      }
-    });
-
-    // Toggle model heatmap overlay on Leaflet map
-    let modelLayerVisible = false;
-    btnToggle.addEventListener('click', () => {
-      if (!modelHeatmap) return;
-
-      if (modelLayerVisible) {
-        if (modelLayer) { map.removeLayer(modelLayer); modelLayer = null; }
-        modelLayerVisible = false;
-        btnToggle.textContent = 'Toggle on map';
-        return;
-      }
-
-      // Build canvas from model heatmap
-      const size = modelHeatmap.length;
-      const canvas = document.createElement('canvas');
-      canvas.width = size; canvas.height = size;
-      const ctx = canvas.getContext('2d');
-      const img = ctx.createImageData(size, size);
-      for (let y = 0; y < size; y++) {
-        for (let x = 0; x < size; x++) {
-          const [r, g, b, a] = colorByIntensity(modelHeatmap[y][x]);
-          const idx = (y * size + x) * 4;
-          img.data[idx]     = r;
-          img.data[idx + 1] = g;
-          img.data[idx + 2] = b;
-          img.data[idx + 3] = a;
-        }
-      }
-      ctx.putImageData(img, 0, 0);
-
-      const bounds_data = {{ bounds_json|safe }};
-      modelLayer = L.imageOverlay(
-        canvas.toDataURL(),
-        [[bounds_data.south, bounds_data.west], [bounds_data.north, bounds_data.east]],
-        { opacity: 0.75, interactive: false }
-      ).addTo(map);
-
-      modelLayerVisible = true;
-      btnToggle.textContent = 'Remove from map';
-    });
-  </script>
+  {{ dashboard_config|json_script:"dashboard-config" }}
+  <script src="{% static 'enki_dashboard/dashboard.js' %}"></script>
 </body>
 </html>

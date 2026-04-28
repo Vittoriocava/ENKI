@@ -2,15 +2,17 @@ from pathlib import Path
 import math
 import json
 import threading
+import base64
 from datetime import datetime, timezone
 
 import numpy as np
 import osmnx as ox
 import networkx as nx
+from django.conf import settings
 from django.http import JsonResponse
 from django.shortcuts import render
+from django.urls import reverse
 from django.views.decorators.http import require_http_methods
-from django.views.decorators.csrf import csrf_exempt
 
 
 # ============================================================
@@ -20,7 +22,7 @@ ROME_LAT   = 41.8931
 ROME_LON   = 12.4828
 PIXEL_M    = 40
 SIZE       = 512
-REFRESH_MS = 100
+REFRESH_MS = 5000
 
 GRAPH_PATH      = Path("data/rome_graph.graphml")
 HISTORICAL_PATH = Path("data/historical_events_rome.geojson")
@@ -53,17 +55,18 @@ FLOOD_EVENT_DATES = [
     (2021,  6,  8), (2021, 11,  8), (2021, 12,  2),
     (2022,  4, 22), (2022,  8,  6), (2022,  8,  9), (2022, 10, 11),
     (2022, 12,  3), (2022, 12, 13),
-    (2023,  4, 15), (2023,  6, 11), (2023,  6, 13), (2023,  6, 14),
-    (2023, 10, 16), (2023, 10, 24), (2023, 12,  5),
+    (2023,  4, 15), (2023,  6, 11), (2023,  6, 13), #(2023,  6, 14),
+    # (2023, 10, 16), (2023, 10, 24), (2023, 12,  5),
+    (2023, 10, 24),
     (2024,  9,  3), (2024,  9, 13), (2024,  9, 25), (2024, 10,  5),
     (2024, 10, 24),
-    (2025,  5,  6),# (2025,  7, 13), (2025,  9, 10),
+    # (2025,  5,  6),# (2025,  7, 13), (2025,  9, 10),
     # (2026,  1,  6), (2026,  1, 28), (2026,  3, 12),
 ]
 
 # Stato condiviso
 _lock         = threading.Lock()
-_extra_blobs  = []     # blob aggiunti manualmente con Shift+Click
+_extra_blobs  = []     # blob aggiunti da API mutative abilitate esplicitamente
 _GRAPH        = None   # grafo stradale, lazy
 _historical_blobs = None  # eventi storici parsati dal GeoJSON
 
@@ -188,6 +191,51 @@ def _current_matrix(year=None, month=None, day=None):
     return matrix
 
 
+def _count_clusters(matrix, threshold):
+    mask = matrix >= threshold
+    seen = np.zeros(mask.shape, dtype=bool)
+    clusters = 0
+    height, width = mask.shape
+
+    for y in range(height):
+        for x in range(width):
+            if seen[y, x] or not mask[y, x]:
+                continue
+            clusters += 1
+            stack = [(y, x)]
+            while stack:
+                cy, cx = stack.pop()
+                if seen[cy, cx] or not mask[cy, cx]:
+                    continue
+                seen[cy, cx] = True
+                if cy > 0:
+                    stack.append((cy - 1, cx))
+                if cy < height - 1:
+                    stack.append((cy + 1, cx))
+                if cx > 0:
+                    stack.append((cy, cx - 1))
+                if cx < width - 1:
+                    stack.append((cy, cx + 1))
+    return clusters
+
+
+def _matrix_payload(matrix):
+    quantized = np.clip(np.rint(matrix * 255), 0, 255).astype(np.uint8)
+    risk_cells = int(np.count_nonzero(matrix >= 0.2))
+    return {
+        "encoding": "uint8-b64",
+        "bounds": _matrix_bounds(),
+        "size": SIZE,
+        "data": base64.b64encode(quantized.tobytes()).decode("ascii"),
+        "stats": {
+            "peak": round(float(matrix.max()), 3),
+            "risk_cells": risk_cells,
+            "total": SIZE * SIZE,
+            "alerts": _count_clusters(matrix, 0.5),
+        },
+    }
+
+
 # ============================================================
 # HELPER: querystring -> filtro periodo
 # ============================================================
@@ -203,27 +251,31 @@ def _parse_period(request):
 # VIEWS
 # ============================================================
 def map_view(request):
-    import json as _json
     coverage_km2 = (SIZE * PIXEL_M / 1000) ** 2
+    dashboard_config = {
+        "centerLat": ROME_LAT,
+        "centerLon": ROME_LON,
+        "zoom": 13,
+        "pixelM": PIXEL_M,
+        "refreshMs": REFRESH_MS,
+        "bounds": _matrix_bounds(),
+        "urls": {
+            "floodData": reverse("enki_dashboard:flood_data"),
+            "route": reverse("enki_dashboard:route"),
+            "historicalPeriods": reverse("enki_dashboard:historical_periods"),
+            "modelPrediction": reverse("enki_dashboard:model_prediction"),
+        },
+    }
     return render(request, "enki_dashboard/map.html", {
-        "center_lat":   ROME_LAT,
-        "center_lon":   ROME_LON,
-        "zoom":         13,
         "coverage_km2": round(coverage_km2, 1),
-        "pixel_m":      PIXEL_M,
-        "refresh_ms":   REFRESH_MS,
-        "bounds_json":  _json.dumps(_matrix_bounds()),
+        "dashboard_config": dashboard_config,
     })
 
 
 def flood_data(request):
     year, month, day = _parse_period(request)
     matrix = _current_matrix(year=year, month=month, day=day)
-    return JsonResponse({
-        "bounds": _matrix_bounds(),
-        "size":   SIZE,
-        "data":   matrix.round(3).tolist(),
-    })
+    return JsonResponse(_matrix_payload(matrix))
 
 
 @require_http_methods(["GET"])
@@ -253,7 +305,7 @@ def historical_periods(request):
 
 
 # ============================================================
-# SPAWN MANUALE (Shift+Click sulla mappa)
+# SPAWN MANUALE (disabilitato di default in deploy)
 # ============================================================
 def _clamp_blob_in_bounds(b):
     margin = int(3 * b["sigma"]) + 1
@@ -261,10 +313,12 @@ def _clamp_blob_in_bounds(b):
     b["cx"] = max(margin, min(SIZE - margin, b["cx"]))
 
 
-@csrf_exempt
 @require_http_methods(["POST"])
 def spawn_flood(request):
     """Aggiunge un blob alla posizione (lat, lon)."""
+    if not settings.ENKI_ALLOW_MUTATIONS:
+        return JsonResponse({"error": "dashboard is read-only"}, status=403)
+
     try:
         body = json.loads(request.body)
         lat = float(body["lat"])
@@ -292,10 +346,12 @@ def spawn_flood(request):
     return JsonResponse({"ok": True, "blob": blob})
 
 
-@csrf_exempt
 @require_http_methods(["POST"])
 def clear_spawns(request):
     """Rimuove tutti i blob aggiunti manualmente."""
+    if not settings.ENKI_ALLOW_MUTATIONS:
+        return JsonResponse({"error": "dashboard is read-only"}, status=403)
+
     with _lock:
         _extra_blobs.clear()
     return JsonResponse({"ok": True})

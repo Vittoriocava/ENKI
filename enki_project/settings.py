@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -68,6 +69,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'enki_project.wsgi.application'
+ASGI_APPLICATION = 'enki_project.asgi.application'
 
 
 # Database
@@ -116,3 +118,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+ENKI_ALLOW_MUTATIONS = os.environ.get("ENKI_ALLOW_MUTATIONS", "").lower() in {
+    "1",
+    "true",
+    "yes",
+}

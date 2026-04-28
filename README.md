@@ -1,6 +1,6 @@
 # ENKI
 
-ENKI Dashboard — a Django-based geospatial analysis tool built with OSMnx, Folium, and scikit-learn.
+ENKI Dashboard — a Django-based flood risk dashboard with ResUNet flood prediction via Keras/Torch and A* routing on an OSMnx/NetworkX road graph.
 
 ## Requirements
 
@@ -14,7 +14,7 @@ ENKI Dashboard — a Django-based geospatial analysis tool built with OSMnx, Fol
 git clone git@github.com:Vittoriocava/ENKI.git
 cd ENKI
 uv sync
-uv run manage.py runserver
+uv run uvicorn enki_project.asgi:application --host 0.0.0.0 --port 8000
 ```
 
 ### With pip
@@ -23,11 +23,13 @@ uv run manage.py runserver
 git clone git@github.com:Vittoriocava/ENKI.git
 cd ENKI
 python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
+source .venv/bin/activate
 pip install -r requirements.txt
-python manage.py runserver
+uvicorn enki_project.asgi:application --host 0.0.0.0 --port 8000
 ```
 
-> [!WARNING]
-> This is a development environment and should only be used for demonstration purposes.
-> Do not expose this service to the internet.
+## Start the app
+
+```bash
+uv run uvicorn enki_project.asgi:application --host 0.0.0.0 --port 8000
+```

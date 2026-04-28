@@ -1,2 +1,6 @@
 cache/
-modello_small_good.keras.zip
+__pycache__/
+*.py[cod]
+data/raw/events/
+data/static_cache/precip_*/
+staticfiles/
