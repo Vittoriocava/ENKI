@@ -16,8 +16,6 @@ botocore==1.42.97
     # via
     #   boto3
     #   s3transfer
-branca==0.8.2
-    # via folium
 certifi==2026.4.22
     # via
     #   pyogrio
@@ -49,8 +47,6 @@ django==6.0.4
     # via enki (pyproject.toml)
 filelock==3.29.0
     # via torch
-folium==0.20.0
-    # via enki (pyproject.toml)
 fonttools==4.62.1
     # via matplotlib
 fsspec==2026.3.0
@@ -68,10 +64,7 @@ idna==3.13
 importlib-metadata==9.0.0
     # via dem-stitcher
 jinja2==3.1.6
-    # via
-    #   branca
-    #   folium
-    #   torch
+    # via torch
 jmespath==1.1.0
     # via
     #   boto3
@@ -105,7 +98,6 @@ numpy==2.4.4
     # via
     #   contourpy
     #   dem-stitcher
-    #   folium
     #   geopandas
     #   h5py
     #   keras
@@ -197,7 +189,6 @@ rasterio==1.5.0
 requests==2.33.1
     # via
     #   dem-stitcher
-    #   folium
     #   osmnx
 rich==15.0.0
     # via keras
@@ -238,7 +229,5 @@ urllib3==2.6.3
     #   requests
 uvicorn==0.46.0
     # via enki (pyproject.toml)
-xyzservices==2026.3.0
-    # via folium
 zipp==3.23.1
     # via importlib-metadata
